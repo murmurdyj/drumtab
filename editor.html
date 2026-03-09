@@ -1213,7 +1213,12 @@ function nz(ctx,t,dur,v,type,freq) {
 
 // Read URL params
 const params = new URLSearchParams(location.search);
-const DRIVE_TOKEN  = params.get('token');
+const DRIVE_TOKEN  = params.get('token') || localStorage.getItem('drumtab_token') || null;
+// Keep token alive in localStorage (sliding 3hr window)
+if (DRIVE_TOKEN) {
+  localStorage.setItem('drumtab_token', DRIVE_TOKEN);
+  localStorage.setItem('drumtab_expiry', Date.now() + 3 * 60 * 60 * 1000);
+}
 const DRIVE_FOLDER = params.get('folder');
 const DRIVE_ID     = params.get('id');    // null if new
 const IS_NEW       = params.get('new') === '1';

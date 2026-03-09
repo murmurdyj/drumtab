@@ -277,8 +277,8 @@ header {
 // ══════════════════════════════════════════════
 // CONFIG — 填入你的 Google API 資訊
 // ══════════════════════════════════════════════
-const CLIENT_ID = '499972066406-386bpsg83vmjel4v36toofnppbdkgqbg.apps.googleusercontent.com';   // ← 替換這裡
-const API_KEY   = 'AIzaSyAW5tLKMbbqtWhFFZS2VgCUY5W9NjT6LmM';     // ← 替換這裡
+const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';   // ← 替換這裡
+const API_KEY   = 'YOUR_GOOGLE_API_KEY';     // ← 替換這裡
 const FOLDER_NAME = 'DrumTab';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
@@ -296,23 +296,60 @@ let editingScoreId = null;
 // ══════════════════════════════════════════════
 // GOOGLE SIGN IN (using GIS)
 // ══════════════════════════════════════════════
-function signIn() {
-  const client = google.accounts.oauth2.initTokenClient({
+let tokenClient = null;
+
+function initGoogleAuth() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES + ' https://www.googleapis.com/auth/userinfo.profile',
     callback: async (resp) => {
       if (resp.error) { toast('登入失敗：' + resp.error); return; }
       accessToken = resp.access_token;
+      // Save token expiry (tokens last ~1hr)
+      const expiry = Date.now() + 3 * 60 * 60 * 1000;
+      localStorage.setItem('drumtab_token', accessToken);
+      localStorage.setItem('drumtab_expiry', expiry);
       await loadUserInfo();
       showMain();
       await ensureFolder();
       await loadScores();
     }
   });
-  client.requestAccessToken();
+  // Try auto-login from localStorage
+  const saved = localStorage.getItem('drumtab_token');
+  const expiry = parseInt(localStorage.getItem('drumtab_expiry') || '0');
+  if (saved && Date.now() < expiry) {
+    accessToken = saved;
+    // Renew expiry every time page loads (sliding 3hr window)
+    localStorage.setItem('drumtab_expiry', Date.now() + 3 * 60 * 60 * 1000);
+    loadUserInfo().then(async () => {
+      showMain();
+      await ensureFolder();
+      await loadScores();
+    }).catch(() => {
+      // Token expired or invalid — try silent refresh
+      tokenClient.requestAccessToken({ prompt: '' });
+    });
+  } else {
+    // Try silent token refresh (no popup)
+    tokenClient.requestAccessToken({ prompt: '' });
+  }
+}
+
+function signIn() {
+  if (tokenClient) {
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+  } else {
+    // GIS not loaded yet, wait
+    const wait = setInterval(() => {
+      if (tokenClient) { clearInterval(wait); tokenClient.requestAccessToken({ prompt: 'select_account' }); }
+    }, 200);
+  }
 }
 
 function signOut() {
+  localStorage.removeItem('drumtab_token');
+  localStorage.removeItem('drumtab_expiry');
   google.accounts.oauth2.revoke(accessToken, () => {
     accessToken = null; userInfo = null; scores = [];
     document.getElementById('mainView').style.display = 'none';
@@ -602,6 +639,6 @@ function toast(msg) {
 </script>
 
 <!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="initGoogleAuth()"></script>
 </body>
 </html>
