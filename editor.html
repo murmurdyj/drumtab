@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鼓譜編輯器</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --border: #e0e0d8;
+  --border2: #c8c8c0;
+  --text: #1a1a18;
+  --text2: #666660;
+  --muted: #aaaaA0;
+  --accent: #1a1a18;
+  --accent-light: #f0f0e8;
+  --line: #333330;
+  --hit-x: #1a1a18;
+  --hit-o: #1a1a18;
+  --playing-col: rgba(26,26,24,0.07);
+  --toolbar: #f5f5f0;
+  --active-tool: #1a1a18;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.title-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  width: 180px;
+  transition: border-color 0.15s;
+}
+.title-input:focus { outline: none; border-bottom-color: var(--border2); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.btn {
+  padding: 4px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.76rem;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--accent-light); }
+.btn.dark { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.dark:hover { background: #333; }
+.vsep { width: 1px; height: 16px; background: var(--border); }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 16px;
+  background: var(--toolbar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 12px 6px 0;
+  border-right: 1px solid var(--border);
+  margin-right: 12px;
+}
+.toolbar-group:last-child { border-right: none; margin-right: 0; }
+
+.toolbar-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-right: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--text2);
+  transition: all 0.1s;
+  margin-right: 2px;
+  font-family: 'Noto Sans TC', sans-serif;
+  user-select: none;
+  position: relative;
+}
+.tool-btn:hover { background: var(--accent-light); color: var(--text); }
+.tool-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tool-btn.erase-btn { border-color: #c84040; color: #c84040; }
+.tool-btn.erase-btn:hover { background: #c84040; color: #fff; border-color: #c84040; }
+.tool-btn.erase-btn.active { background: #c84040; color: #fff; border-color: #c84040; }
+.tool-btn.undo-btn { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; width: auto; padding: 0 8px; }
+.tool-btn.undo-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.tool-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 3px 7px;
+  border-radius: 3px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.bpm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+.bpm-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 32px;
+  text-align: right;
+}
+input[type=range] { width: 80px; accent-color: var(--text); cursor: pointer; }
+
+.sig-select {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.76rem;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+}
+
+.play-btn {
+  padding: 4px 14px;
+  border-radius: 3px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.76rem;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.1s;
+}
+.play-btn:hover { background: #333; border-color: #333; }
+
+/* ── SECTION TABS ── */
+.section-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.sec-tab {
+  padding: 7px 14px;
+  font-size: 0.76rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  white-space: nowrap;
+  transition: all 0.1s;
+  user-select: none;
+}
+.sec-tab:hover { color: var(--text); }
+.sec-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+.sec-tab-add {
+  padding: 7px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.1s;
+}
+.sec-tab-add:hover { color: var(--text); }
+
+/* ── SCORE AREA ── */
+.score-area {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
+  background: var(--bg);
+}
+
+/* ── STAFF ── */
+.staff-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.staff-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+/* Instrument labels */
+.inst-labels {
+  display: flex;
+  flex-direction: column;
+  width: 36px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.inst-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text2);
+  text-align: right;
+  padding-right: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.1s;
+  line-height: 1;
+}
+.inst-label:hover { color: var(--text); }
+.inst-label.muted { color: var(--muted); text-decoration: line-through; }
+
+/* Staff SVG wrapper */
+.staff-svg-wrap {
+  flex: 1;
+  overflow-x: auto;
+}
+
+svg.staff {
+  display: block;
+  cursor: crosshair;
+}
+
+/* ── MEASURE CONTROLS ── */
+.measure-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.measure-info {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* ── STATUS ── */
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 16px;
+  background: var(--toolbar);
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
+}
+.playing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted); display: inline-block; margin-right: 4px;
+}
+.playing-dot.on { background: #1a8a3a; animation: blink 0.7s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+
+/* ── MODAL ── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3); z-index: 500;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 20px;
+  width: 360px; max-width: 92vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.modal h3 { font-size: 0.9rem; margin-bottom: 14px; }
+.modal label { display: block; font-size: 0.74rem; color: var(--text2); margin-bottom: 3px; }
+.modal input[type=text] {
+  width: 100%;
+  border: 1px solid var(--border2);
+  padding: 6px 9px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  margin-bottom: 10px;
+  background: var(--bg);
+}
+.modal input[type=text]:focus { outline: none; border-color: var(--text); }
+.modal-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 12px; }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 18px; right: 18px;
+  background: var(--text); color: #fff;
+  padding: 7px 14px; border-radius: 4px;
+  font-size: 0.76rem; opacity: 0;
+  transition: opacity 0.2s; z-index: 999; pointer-events: none;
+}
+#toast.show { opacity: 1; }
+
+@media print {
+  .topbar, .toolbar, .section-tabs, .statusbar, .modal-bg, .measure-controls { display: none !important; }
+  body { background: #fff; overflow: visible; height: auto; }
+  .score-area { overflow: visible; padding: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="index.html" class="btn" style="padding:4px 10px;font-size:0.8rem;" title="返回鼓譜庫">← 返回</a>
+  <div class="vsep"></div>
+  <div class="logo">DRUM</div>
+  <div class="vsep"></div>
+  <input class="title-input" id="songTitle" type="text" value="無標題鼓譜" placeholder="曲目名稱">
+  <div class="topbar-right">
+    <span id="saveStatus" style="font-size:0.68rem;color:#aaa;font-family:'JetBrains Mono',monospace;"></span>
+    <button class="btn" onclick="manageTags()" title="管理標籤">🏷 標籤</button>
+    <button class="btn" onclick="saveToDrive()" id="saveBtn">☁ 儲存</button>
+    <button class="btn dark" onclick="window.print()">列印</button>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <!-- Note value -->
+  <div class="toolbar-group">
+    <span class="toolbar-label">時值</span>
+    <div class="tool-btn active" id="dur-1" title="全音符" onclick="setDur(1,this)">𝅝</div>
+    <div class="tool-btn" id="dur-2" title="二分音符" onclick="setDur(2,this)">𝅗</div>
+    <div class="tool-btn" id="dur-4" title="四分音符" onclick="setDur(4,this)">♩</div>
+    <div class="tool-btn" id="dur-8" title="八分音符" onclick="setDur(8,this)">♪</div>
+    <div class="tool-btn" id="dur-16" title="十六分音符" onclick="setDur(16,this)">𝅘𝅥𝅯</div>
+  </div>
+  <!-- Symbol type -->
+  <div class="toolbar-group">
+    <span class="toolbar-label">符號</span>
+    <div class="tool-btn active" id="sym-x" title="叉號（鈸/HH）" onclick="setSym('x',this)">✕</div>
+    <div class="tool-btn" id="sym-o" title="空心（鼓擊）" onclick="setSym('o',this)">○</div>
+    <div class="tool-btn" id="sym-X" title="重音叉號" onclick="setSym('X',this)">✕̈</div>
+    <div class="tool-btn" id="sym-O" title="重音鼓擊" onclick="setSym('O',this)">●</div>
+    <div class="tool-btn" id="sym-g" title="Ghost Note" onclick="setSym('g',this)">()</div>
+    <div class="tool-btn" id="sym-f" title="Flam" onclick="setSym('f',this)">𝆐</div>
+    <div class="tool-btn" id="sym-r" title="休止符" onclick="setSym('r',this)">𝄽</div>
+  </div>
+  <!-- Erase + Undo -->
+  <div class="toolbar-group">
+    <div class="tool-btn erase-btn" id="sym-erase" title="橡皮擦：點格子清除音符（快捷鍵 E）" onclick="setSym('erase',this)">橡皮擦</div>
+    <div class="tool-btn undo-btn" id="undoBtn" title="回上一步（⌘Z）" onclick="doUndo()">↩ Undo</div>
+    <div class="tool-btn undo-btn" id="redoBtn" title="重做（⌘Shift+Z）" onclick="doRedo()">↪ Redo</div>
+  </div>
+  <!-- Measure -->
+  <div class="toolbar-group">
+    <span class="toolbar-label">小節</span>
+    <div class="tool-btn" title="新增小節" onclick="addMeasure()">＋</div>
+    <div class="tool-btn" title="刪除最後小節" onclick="removeMeasure()">－</div>
+  </div>
+  <!-- Playback -->
+  <div class="toolbar-group">
+    <span class="toolbar-label">BPM</span>
+    <input type="range" id="bpmSlider" min="40" max="240" value="120" oninput="updateBpm(this.value)">
+    <span class="bpm-num" id="bpmNum">120</span>
+  </div>
+  <div class="toolbar-group">
+    <span class="toolbar-label">拍號</span>
+    <select class="sig-select" id="sigSelect" onchange="updateSig()">
+      <option>4/4</option><option>2/4</option><option>3/4</option>
+      <option>6/8</option><option>7/8</option><option>7/4</option>
+      <option>5/4</option><option>5/8</option><option>9/8</option>
+      <option>12/8</option><option>3/7</option>
+    </select>
+  </div>
+  <div class="toolbar-group">
+    <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ 播放</button>
+    <div class="tool-btn" title="停止" onclick="stopPlay()" style="margin-left:4px">■</div>
+    <div class="tool-btn" id="loopBtn" title="循環播放" onclick="toggleLoop()" style="margin-left:2px">🔁</div>
+  </div>
+</div>
+
+<!-- SECTION TABS -->
+<div class="section-tabs" id="sectionTabs">
+  <div class="sec-tab-add" onclick="addSection()">＋</div>
+</div>
+
+<!-- SCORE AREA -->
+<div class="score-area" id="scoreArea">
+  <div class="staff-container" id="staffContainer">
+    <div class="measure-controls">
+      <span class="measure-info" id="measureInfo">0 小節</span>
+    </div>
+    <div id="staffWrap"></div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span><span class="playing-dot" id="playDot"></span><span id="statusTxt">就緒</span></span>
+  <span id="posInfo">Bar 1 · Beat 1</span>
+  <span id="totalBars">共 0 小節</span>
+  <span>橡皮擦: E｜Undo: ⌘Z｜Redo: ⌘⇧Z</span>
+</div>
+
+<!-- TAG MANAGEMENT MODAL -->
+<div class="modal-bg" id="tagModal">
+  <div class="modal">
+    <h3>🏷 這張譜的標籤</h3>
+    <div id="tagChipsWrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:32px;"></div>
+    <label style="font-size:0.74rem;color:#888;">新增標籤（輸入後按 Enter）</label>
+    <input type="text" id="tagInput" placeholder="輸入標籤名稱…" style="margin-top:4px;"
+      onkeydown="if(event.key==='Enter'){addTag();event.preventDefault()}">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('tagModal')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SECTION MODAL -->
+<div class="modal-bg" id="addSecModal">
+  <div class="modal">
+    <h3>新增段落</h3>
+    <label>段落名稱</label>
+    <input type="text" id="newSecName" placeholder="如：前奏、主歌、副歌…">
+    <label>小節數</label>
+    <input type="text" id="newSecBars" value="4">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('addSecModal')">取消</button>
+      <button class="btn dark" onclick="confirmAddSection()">新增</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════
+
+// Instruments in order top→bottom on staff
+const INSTRUMENTS = [
+  { abbr:'CR',  name:'Crash',       sym:'x', lineIdx:0 },
+  { abbr:'RC',  name:'Ride',        sym:'x', lineIdx:1 },
+  { abbr:'HH',  name:'Hi-Hat',      sym:'x', lineIdx:2 },
+  { abbr:'S',   name:'Snare',       sym:'o', lineIdx:3 },
+  { abbr:'T1',  name:'Hi Tom',      sym:'o', lineIdx:4 },
+  { abbr:'T2',  name:'Mid Tom',     sym:'o', lineIdx:5 },
+  { abbr:'FT',  name:'Floor Tom',   sym:'o', lineIdx:6 },
+  { abbr:'HF',  name:'HH Foot',     sym:'x', lineIdx:7 },
+  { abbr:'B',   name:'Bass',        sym:'o', lineIdx:8 },
+];
+const N_INST = INSTRUMENTS.length;
+
+// SVG layout constants
+const CELL_W = 28;       // width per 16th note cell
+const ROW_H  = 14;       // height per instrument row
+const STAFF_PAD_TOP = 8;
+const STAFF_PAD_BOT = 8;
+const LABEL_W = 40;
+const STAFF_H = N_INST * ROW_H + STAFF_PAD_TOP + STAFF_PAD_BOT;
+
+// 5 staff lines mapped to specific rows
+const STAFF_LINES = [2, 3, 4, 5, 6]; // lineIdx values that get a real line
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let sections = [];      // { name, measures: [ [N_INST][cells] ] }
+let activeSec = 0;
+let currentDur = 4;     // 1,2,4,8,16
+let currentSym = 'x';
+let bpm = 120;
+let timeSig = '4/4';
+let loopEnabled = true;
+let isPlaying = false;
+let playStep = 0;
+let playTimer = null;
+let timerInterval = null;
+let elapsedMs = 0;
+let startMs = 0;
+let audioCtx = null;
+let mutedInst = new Set();
+
+// ── UNDO / REDO ──
+const MAX_HISTORY = 60;
+let undoStack = [];
+let redoStack = [];
+
+// Cells per beat based on time signature
+function cellsPerMeasure() {
+  const [n, d] = timeSig.split('/').map(Number);
+  // Always use 16th-note grid; cells = beats * (16/denom)
+  const denom = isNaN(d) ? 4 : d;
+  const num = isNaN(n) ? 4 : n;
+  return num * Math.max(1, Math.round(16 / denom));
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  if (DRIVE_ID && DRIVE_TOKEN) {
+    loadFromDrive();
+  } else {
+    const s = localStorage.getItem('drumtab_v3');
+    if (s) { try { applyData(JSON.parse(s)); } catch(e){} }
+    else initDefault();
+    renderAll();
+  }
+});
+
+function initDefault() {
+  sections = [
+    makeSection('前奏', 4),
+    makeSection('主歌', 8),
+    makeSection('副歌', 8),
+  ];
+  activeSec = 0;
+}
+
+function makeSection(name, bars) {
+  const cpm = cellsPerMeasure();
+  const measures = [];
+  for (let m = 0; m < bars; m++) {
+    const rows = [];
+    for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
+    measures.push(rows);
+  }
+  return { name, measures };
+}
+
+function applyData(d) {
+  if (d.title) document.getElementById('songTitle').value = d.title;
+  if (d.sections) sections = d.sections;
+  if (d.bpm) { bpm = d.bpm; document.getElementById('bpmSlider').value = bpm; document.getElementById('bpmNum').textContent = bpm; }
+  if (d.timeSig) { timeSig = d.timeSig; document.getElementById('sigSelect').value = timeSig; }
+  activeSec = 0;
+}
+
+// ═══════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════
+function renderAll() {
+  renderSectionTabs();
+  renderStaff();
+  updateMeasureInfo();
+}
+
+function renderSectionTabs() {
+  const bar = document.getElementById('sectionTabs');
+  bar.innerHTML = '';
+  sections.forEach((sec, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'sec-tab' + (i === activeSec ? ' active' : '');
+    tab.textContent = sec.name;
+    tab.onclick = () => { activeSec = i; renderAll(); };
+    bar.appendChild(tab);
+  });
+  const add = document.createElement('div');
+  add.className = 'sec-tab-add';
+  add.textContent = '＋';
+  add.onclick = addSection;
+  bar.appendChild(add);
+}
+
+// ═══════════════════════════════════
+// STAFF RENDERING (SVG)
+// ═══════════════════════════════════
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function renderStaff() {
+  const sec = sections[activeSec];
+  const wrap = document.getElementById('staffWrap');
+  wrap.innerHTML = '';
+
+  const BARS_PER_ROW = 4;
+  const measures = sec.measures;
+  const cpm = cellsPerMeasure();
+
+  // Group measures into rows of BARS_PER_ROW
+  for (let rowStart = 0; rowStart < measures.length; rowStart += BARS_PER_ROW) {
+    const rowMeasures = measures.slice(rowStart, rowStart + BARS_PER_ROW);
+    const totalCells = rowMeasures.reduce((a, m) => a + m[0].length, 0);
+    const svgW = LABEL_W + totalCells * CELL_W + 20;
+
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:flex-start;margin-bottom:24px;';
+
+    // Instrument labels
+    const labelDiv = document.createElement('div');
+    labelDiv.style.cssText = `width:${LABEL_W}px;flex-shrink:0;padding-top:${STAFF_PAD_TOP + 2}px;`;
+    INSTRUMENTS.forEach((inst, i) => {
+      const lbl = document.createElement('div');
+      lbl.className = 'inst-label' + (mutedInst.has(i) ? ' muted' : '');
+      lbl.textContent = inst.abbr;
+      lbl.style.height = ROW_H + 'px';
+      lbl.style.lineHeight = ROW_H + 'px';
+      lbl.title = inst.name + '（點擊靜音）';
+      lbl.onclick = () => { mutedInst.has(i) ? mutedInst.delete(i) : mutedInst.add(i); renderStaff(); };
+      labelDiv.appendChild(lbl);
+    });
+    div.appendChild(labelDiv);
+
+    // SVG staff
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'staff');
+    svg.setAttribute('width', svgW);
+    svg.setAttribute('height', STAFF_H);
+    svg.style.userSelect = 'none';
+
+    // Background
+    rect(svg, 0, 0, svgW, STAFF_H, '#fff', 'none');
+
+    // Staff lines (for 5 standard lines)
+    const staffLineIdxs = [2,3,4,5,6]; // which instrument rows get a staff line
+    staffLineIdxs.forEach(li => {
+      const y = STAFF_PAD_TOP + li * ROW_H + ROW_H / 2;
+      line(svg, 0, y, svgW - 4, y, '#ccc', 1);
+    });
+
+    // Ledger-like thin lines for all rows
+    INSTRUMENTS.forEach((inst, i) => {
+      if (!staffLineIdxs.includes(i)) {
+        const y = STAFF_PAD_TOP + i * ROW_H + ROW_H / 2;
+        line(svg, 0, y, svgW - 4, y, '#e8e8e0', 0.5);
+      }
+    });
+
+    // Percussion clef (simplified bracket)
+    const clefX = 2;
+    line(svg, clefX + 3, STAFF_PAD_TOP + staffLineIdxs[0] * ROW_H + ROW_H/2,
+             clefX + 3, STAFF_PAD_TOP + staffLineIdxs[4] * ROW_H + ROW_H/2, '#555', 2.5);
+    line(svg, clefX + 6, STAFF_PAD_TOP + staffLineIdxs[0] * ROW_H + ROW_H/2,
+             clefX + 6, STAFF_PAD_TOP + staffLineIdxs[4] * ROW_H + ROW_H/2, '#555', 2.5);
+
+    // Time signature display
+    const [sigN, sigD] = timeSig.split('/');
+    text(svg, 14, STAFF_PAD_TOP + 2 * ROW_H, sigN, '#333', '10px', 'bold');
+    text(svg, 14, STAFF_PAD_TOP + 4 * ROW_H, sigD || '?', '#333', '10px', 'bold');
+
+    // Draw measures
+    let xOffset = 22;
+    rowMeasures.forEach((meas, mIdx) => {
+      const globalMeasIdx = rowStart + mIdx;
+      const nCells = meas[0].length;
+      const measW = nCells * CELL_W;
+
+      // Measure number
+      text(svg, xOffset + 2, STAFF_PAD_TOP - 1, String(globalMeasIdx + 1), '#aaa', '7px');
+
+      // Beat subdivisions (subtle)
+      const beatsPerMeas = parseInt(timeSig.split('/')[0]) || 4;
+      const cellsPerBeat = nCells / beatsPerMeas;
+      for (let b = 0; b < beatsPerMeas; b++) {
+        const bx = xOffset + b * cellsPerBeat * CELL_W;
+        line(svg, bx, STAFF_PAD_TOP, bx, STAFF_H - STAFF_PAD_BOT, '#ddd', 0.5);
+      }
+
+      // Cells & notes
+      INSTRUMENTS.forEach((inst, iIdx) => {
+        const cy = STAFF_PAD_TOP + iIdx * ROW_H + ROW_H / 2;
+        meas[iIdx].forEach((cell, cIdx) => {
+          const cx = xOffset + cIdx * CELL_W + CELL_W / 2;
+
+          // Hover zone (transparent clickable rect)
+          const r = document.createElementNS(SVG_NS, 'rect');
+          r.setAttribute('x', xOffset + cIdx * CELL_W);
+          r.setAttribute('y', STAFF_PAD_TOP + iIdx * ROW_H);
+          r.setAttribute('width', CELL_W);
+          r.setAttribute('height', ROW_H);
+          r.setAttribute('fill', 'transparent');
+          r.style.cursor = 'pointer';
+          r.addEventListener('click', () => handleCellClick(globalMeasIdx, iIdx, cIdx));
+          r.addEventListener('mouseenter', function() {
+            if (currentSym !== 'erase') this.setAttribute('fill', 'rgba(0,0,0,0.04)');
+          });
+          r.addEventListener('mouseleave', function() {
+            this.setAttribute('fill', 'transparent');
+          });
+          svg.appendChild(r);
+
+          // Draw note symbol
+          if (cell) drawNoteSymbol(svg, cx, cy, cell);
+        });
+      });
+
+      // Bar line
+      const barX = xOffset + measW;
+      line(svg, barX, STAFF_PAD_TOP, barX, STAFF_H - STAFF_PAD_BOT, '#888', 1.5);
+
+      xOffset += measW;
+    });
+
+    // Final double bar line
+    line(svg, xOffset, STAFF_PAD_TOP, xOffset, STAFF_H - STAFF_PAD_BOT, '#444', 2.5);
+    line(svg, xOffset + 3, STAFF_PAD_TOP, xOffset + 3, STAFF_H - STAFF_PAD_BOT, '#444', 5);
+
+    div.appendChild(svg);
+    wrap.appendChild(div);
+  }
+}
+
+function drawNoteSymbol(svg, cx, cy, cell) {
+  const { sym, dur } = cell;
+  const stemUp = cy > STAFF_H / 2;
+  const stemY = stemUp ? cy - ROW_H * 2.2 : cy + ROW_H * 2.2;
+
+  if (sym === 'r') {
+    // Rest symbol
+    text(svg, cx, cy + 3, '𝄽', '#555', '9px');
+    return;
+  }
+
+  const isX = sym === 'x' || sym === 'X';
+  const isGhost = sym === 'g';
+  const isFlam = sym === 'f';
+  const accent = sym === 'X' || sym === 'O';
+
+  if (isX) {
+    // X note head
+    const s = 3.5;
+    line(svg, cx-s, cy-s, cx+s, cy+s, '#1a1a18', accent ? 2.2 : 1.5);
+    line(svg, cx+s, cy-s, cx-s, cy+s, '#1a1a18', accent ? 2.2 : 1.5);
+  } else if (isGhost) {
+    // Ghost: open circle with parens
+    ellipse(svg, cx, cy, 3, 2.5, 'none', '#555', 1);
+    text(svg, cx - 8, cy + 3.5, '(', '#555', '8px');
+    text(svg, cx + 4, cy + 3.5, ')', '#555', '8px');
+  } else if (isFlam) {
+    // Flam: small grace note + main note
+    ellipse(svg, cx - 6, cy - 2, 2, 1.5, '#888', 'none', 1);
+    line(svg, cx - 6, cy - 2, cx - 6, cy - 2 - ROW_H * 1.5, '#888', 0.8);
+    if (dur === 4 || dur === 2 || dur === 1) ellipse(svg, cx, cy, 4, 3, 'none', '#1a1a18', 1.5);
+    else ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+  } else {
+    // O note head
+    if (dur === 1) {
+      // Whole note: open oval
+      ellipse(svg, cx, cy, 5, 3.5, 'none', '#1a1a18', 1.5);
+    } else if (dur === 2) {
+      ellipse(svg, cx, cy, 4.5, 3, 'none', '#1a1a18', 1.5);
+    } else {
+      ellipse(svg, cx, cy, 4, 3, accent ? '#1a1a18' : '#1a1a18', 'none', 0);
+      if (!accent) ellipse(svg, cx, cy, 4, 3, 'none', '#1a1a18', 1.2);
+      if (accent) ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+    }
+  }
+
+  // Stem
+  if (dur !== 1) {
+    const stemFrom = stemUp ? cy - 3 : cy + 3;
+    line(svg, cx + (stemUp ? 4 : -4), stemFrom, cx + (stemUp ? 4 : -4), stemY, '#1a1a18', 1.2);
+  }
+
+  // Flags / beams (simplified)
+  if (dur === 8) {
+    const sx = cx + (stemUp ? 4 : -4);
+    drawFlag(svg, sx, stemY, stemUp, 1);
+  } else if (dur === 16) {
+    const sx = cx + (stemUp ? 4 : -4);
+    drawFlag(svg, sx, stemY, stemUp, 2);
+  }
+
+  // Accent mark
+  if (accent) {
+    text(svg, cx - 5, stemUp ? cy + ROW_H * 0.9 : cy - ROW_H * 0.4, '>', '#333', '7px', 'bold');
+  }
+}
+
+function drawFlag(svg, x, y, stemUp, count) {
+  for (let f = 0; f < count; f++) {
+    const fy = stemUp ? y + f * 4 : y - f * 4;
+    const path = document.createElementNS(SVG_NS, 'path');
+    const d = stemUp
+      ? `M${x},${fy} C${x+8},${fy+3} ${x+6},${fy+7} ${x+2},${fy+8}`
+      : `M${x},${fy} C${x+8},${fy-3} ${x+6},${fy-7} ${x+2},${fy-8}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#1a1a18');
+    path.setAttribute('stroke-width', '1.2');
+    svg.appendChild(path);
+  }
+}
+
+// SVG helpers
+function rect(svg, x, y, w, h, fill, stroke) {
+  const el = document.createElementNS(SVG_NS, 'rect');
+  el.setAttribute('x', x); el.setAttribute('y', y);
+  el.setAttribute('width', w); el.setAttribute('height', h);
+  el.setAttribute('fill', fill); if (stroke !== 'none') el.setAttribute('stroke', stroke);
+  svg.appendChild(el); return el;
+}
+function line(svg, x1, y1, x2, y2, stroke, sw) {
+  const el = document.createElementNS(SVG_NS, 'line');
+  el.setAttribute('x1',x1); el.setAttribute('y1',y1);
+  el.setAttribute('x2',x2); el.setAttribute('y2',y2);
+  el.setAttribute('stroke', stroke); el.setAttribute('stroke-width', sw);
+  svg.appendChild(el);
+}
+function ellipse(svg, cx, cy, rx, ry, fill, stroke, sw) {
+  const el = document.createElementNS(SVG_NS, 'ellipse');
+  el.setAttribute('cx',cx); el.setAttribute('cy',cy);
+  el.setAttribute('rx',rx); el.setAttribute('ry',ry);
+  el.setAttribute('fill', fill); el.setAttribute('stroke', stroke); el.setAttribute('stroke-width', sw);
+  svg.appendChild(el);
+}
+function text(svg, x, y, str, fill, size, weight) {
+  const el = document.createElementNS(SVG_NS, 'text');
+  el.setAttribute('x', x); el.setAttribute('y', y);
+  el.setAttribute('fill', fill); el.setAttribute('font-size', size || '9px');
+  el.setAttribute('font-family', 'Georgia, serif');
+  if (weight) el.setAttribute('font-weight', weight);
+  el.textContent = str;
+  svg.appendChild(el);
+}
+
+// ═══════════════════════════════════
+// UNDO / REDO
+// ═══════════════════════════════════
+function snapshotForUndo() {
+  undoStack.push(JSON.stringify(sections));
+  if (undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack = [];
+  updateUndoButtons();
+}
+
+function doUndo() {
+  if (!undoStack.length) { toast('沒有可以回復的步驟'); return; }
+  redoStack.push(JSON.stringify(sections));
+  sections = JSON.parse(undoStack.pop());
+  updateUndoButtons();
+  renderStaff();
+  updateMeasureInfo();
+  toast('已回復上一步');
+}
+
+function doRedo() {
+  if (!redoStack.length) { toast('沒有可以重做的步驟'); return; }
+  undoStack.push(JSON.stringify(sections));
+  sections = JSON.parse(redoStack.pop());
+  updateUndoButtons();
+  renderStaff();
+  updateMeasureInfo();
+  toast('已重做');
+}
+
+function updateUndoButtons() {
+  const u = document.getElementById('undoBtn');
+  const r = document.getElementById('redoBtn');
+  if (u) u.style.opacity = undoStack.length ? '1' : '0.25';
+  if (r) r.style.opacity = redoStack.length ? '1' : '0.25';
+}
+
+// ═══════════════════════════════════
+// CELL CLICK
+// ═══════════════════════════════════
+function handleCellClick(measIdx, instIdx, cellIdx) {
+  snapshotForUndo();
+  const sec = sections[activeSec];
+  const meas = sec.measures[measIdx];
+
+  if (currentSym === 'erase') {
+    meas[instIdx][cellIdx] = null;
+  } else {
+    // Toggle: if same sym already there, remove
+    const existing = meas[instIdx][cellIdx];
+    if (existing && existing.sym === currentSym && existing.dur === currentDur) {
+      meas[instIdx][cellIdx] = null;
+    } else {
+      meas[instIdx][cellIdx] = { sym: currentSym, dur: currentDur };
+    }
+  }
+
+  renderStaff();
+  autoSave();
+}
+
+// ═══════════════════════════════════
+// TOOL SELECTION
+// ═══════════════════════════════════
+function setDur(d, el) {
+  currentDur = d;
+  document.querySelectorAll('[id^="dur-"]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setSym(s, el) {
+  currentSym = s;
+  document.querySelectorAll('[id^="sym-"]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ═══════════════════════════════════
+// MEASURE MANAGEMENT
+// ═══════════════════════════════════
+function addMeasure() {
+  const cpm = cellsPerMeasure();
+  const rows = [];
+  for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
+  sections[activeSec].measures.push(rows);
+  renderStaff();
+  updateMeasureInfo();
+  autoSave();
+  toast('已新增小節');
+}
+
+function removeMeasure() {
+  const m = sections[activeSec].measures;
+  if (m.length <= 1) { toast('至少保留一個小節'); return; }
+  m.pop();
+  renderStaff();
+  updateMeasureInfo();
+  autoSave();
+}
+
+function updateMeasureInfo() {
+  const total = sections[activeSec].measures.length;
+  document.getElementById('measureInfo').textContent = `第 ${activeSec + 1} 段 · ${total} 小節`;
+  const allBars = sections.reduce((a, s) => a + s.measures.length, 0);
+  document.getElementById('totalBars').textContent = `共 ${allBars} 小節`;
+}
+
+// ═══════════════════════════════════
+// SECTION MANAGEMENT
+// ═══════════════════════════════════
+function addSection() {
+  document.getElementById('newSecName').value = '';
+  document.getElementById('newSecBars').value = '4';
+  document.getElementById('addSecModal').classList.add('open');
+  setTimeout(() => document.getElementById('newSecName').focus(), 80);
+}
+
+function confirmAddSection() {
+  const name = document.getElementById('newSecName').value.trim() || '新段落';
+  const bars = Math.max(1, parseInt(document.getElementById('newSecBars').value) || 4);
+  sections.push(makeSection(name, bars));
+  activeSec = sections.length - 1;
+  closeModal('addSecModal');
+  renderAll();
+  toast(`已新增段落：${name}`);
+}
+
+// ═══════════════════════════════════
+// PLAYBACK
+// ═══════════════════════════════════
+function togglePlay() {
+  isPlaying ? pausePlay() : startPlay();
+}
+
+function startPlay() {
+  getAudio();
+  isPlaying = true;
+  document.getElementById('playBtn').textContent = '⏸ 暫停';
+  document.getElementById('playDot').classList.add('on');
+  document.getElementById('statusTxt').textContent = '播放中';
+  startMs = Date.now() - elapsedMs;
+  timerInterval = setInterval(updateTimer, 80);
+  tick();
+}
+
+function pausePlay() {
+  isPlaying = false;
+  clearTimeout(playTimer);
+  clearInterval(timerInterval);
+  elapsedMs = Date.now() - startMs;
+  document.getElementById('playBtn').textContent = '▶ 播放';
+  document.getElementById('playDot').classList.remove('on');
+  document.getElementById('statusTxt').textContent = '暫停';
+}
+
+function stopPlay() {
+  isPlaying = false;
+  clearTimeout(playTimer);
+  clearInterval(timerInterval);
+  playStep = 0; elapsedMs = 0;
+  document.getElementById('playBtn').textContent = '▶ 播放';
+  document.getElementById('playDot').classList.remove('on');
+  document.getElementById('statusTxt').textContent = '就緒';
+  document.getElementById('posInfo').textContent = 'Bar 1 · Beat 1';
+}
+
+function toggleLoop() {
+  loopEnabled = !loopEnabled;
+  document.getElementById('loopBtn').style.opacity = loopEnabled ? '1' : '0.35';
+  toast(loopEnabled ? '循環播放開啟' : '循環播放關閉');
+}
+
+function tick() {
+  if (!isPlaying) return;
+  const sec = sections[activeSec];
+  const allCells = sec.measures.flatMap(m =>
+    Array.from({ length: m[0].length }, (_, ci) =>
+      INSTRUMENTS.map((inst, ii) => ({ inst: ii, cell: m[ii][ci] }))
+    )
+  );
+  const totalSteps = allCells.length;
+  if (playStep >= totalSteps) {
+    if (loopEnabled) playStep = 0;
+    else { stopPlay(); return; }
+  }
+  const step = allCells[playStep];
+  step.forEach(({ inst, cell }) => {
+    if (cell && !mutedInst.has(inst)) {
+      playDrum(INSTRUMENTS[inst].abbr, cell.sym === 'X' || cell.sym === 'O');
+    }
+  });
+  playStep++;
+  const msPerCell = (60 / bpm / 4) * 1000;
+  playTimer = setTimeout(tick, msPerCell);
+}
+
+function updateTimer() {
+  const el = Date.now() - startMs;
+  const s = Math.floor(el / 1000);
+  const m = Math.floor(s / 60);
+  const ss = s % 60;
+  const cpm = cellsPerMeasure();
+  const bar = Math.floor(playStep / cpm) + 1;
+  const beat = Math.floor((playStep % cpm) / 4) + 1;
+  document.getElementById('posInfo').textContent =
+    `Bar ${bar} · Beat ${beat} · ${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+
+function updateBpm(v) {
+  bpm = parseInt(v);
+  document.getElementById('bpmNum').textContent = v;
+}
+
+function updateSig() {
+  timeSig = document.getElementById('sigSelect').value;
+}
+
+// ═══════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playDrum(abbr, accent) {
+  const ctx = getAudio();
+  const t = ctx.currentTime;
+  const v = accent ? 1.0 : 0.72;
+  switch(abbr) {
+    case 'B':  kick(ctx,t,v); break;
+    case 'S':  snare(ctx,t,v); break;
+    case 'HH': hihat(ctx,t,v,false); break;
+    case 'OH':
+    case 'HF': hihat(ctx,t,v*0.55,true); break;
+    case 'CR':
+    case 'CC': cymbal(ctx,t,v,180); break;
+    case 'RC': cymbal(ctx,t,v*0.7,120); break;
+    case 'RB': rideBell(ctx,t,v); break;
+    case 'T1': tom(ctx,t,v,220); break;
+    case 'T2': tom(ctx,t,v,160); break;
+    case 'FT': tom(ctx,t,v,100); break;
+    default:   hihat(ctx,t,v*0.4,false); break;
+  }
+}
+
+function kick(ctx,t,v) {
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.frequency.setValueAtTime(160,t); o.frequency.exponentialRampToValueAtTime(50,t+0.12);
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.5);
+  nz(ctx,t,0.02,v*0.3,'lowpass',200);
+}
+function snare(ctx,t,v) {
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.frequency.setValueAtTime(220,t); o.frequency.exponentialRampToValueAtTime(100,t+0.1);
+  g.gain.setValueAtTime(v*0.45,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.14);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.18);
+  nz(ctx,t,0.2,v*0.85,'highpass',1200);
+}
+function hihat(ctx,t,v,open) { nz(ctx,t,open?0.35:0.07,v*0.45,'highpass',7000); }
+function cymbal(ctx,t,v,base) {
+  [1,1.32,1.52,1.74,2.05].forEach(r=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='square'; o.frequency.value=base*r;
+    g.gain.setValueAtTime(v*0.06,t); g.gain.exponentialRampToValueAtTime(0.001,t+1.5);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+1.6);
+  });
+}
+function rideBell(ctx,t,v) {
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type='sine'; o.frequency.value=1050;
+  g.gain.setValueAtTime(v*0.55,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.65);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.7);
+}
+function tom(ctx,t,v,freq) {
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.frequency.setValueAtTime(freq*1.5,t); o.frequency.exponentialRampToValueAtTime(freq,t+0.07);
+  g.gain.setValueAtTime(v*0.9,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.32);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.4);
+  nz(ctx,t,0.03,v*0.15,'bandpass',freq*3);
+}
+function nz(ctx,t,dur,v,type,freq) {
+  const buf=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*dur),ctx.sampleRate);
+  const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const src=ctx.createBufferSource(); src.buffer=buf;
+  const f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(t);
+}
+
+// ═══════════════════════════════════
+// DRIVE + TAGS
+// ═══════════════════════════════════
+
+// Read URL params
+const params = new URLSearchParams(location.search);
+const DRIVE_TOKEN  = params.get('token');
+const DRIVE_FOLDER = params.get('folder');
+const DRIVE_ID     = params.get('id');    // null if new
+const IS_NEW       = params.get('new') === '1';
+
+let scoreTags = [];
+
+async function gFetch(url, opts = {}) {
+  return fetch(url, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${DRIVE_TOKEN}`,
+      ...(opts.headers || {})
+    }
+  });
+}
+
+async function saveToDrive() {
+  const data = getData();
+  const title = data.title || '無標題鼓譜';
+  const filename = title + '.drum.json';
+  const totalBars = sections.reduce((a, s) => a + s.measures.length, 0);
+  const appProps = {
+    bpm: String(bpm),
+    timeSig,
+    bars: String(totalBars),
+    tags: JSON.stringify(scoreTags),
+  };
+  const body = JSON.stringify({ ...data, tags: scoreTags });
+
+  document.getElementById('saveStatus').textContent = '儲存中…';
+  document.getElementById('saveBtn').disabled = true;
+
+  try {
+    if (DRIVE_ID && !IS_NEW) {
+      // Update existing file
+      const boundary = '-------drumtab';
+      const meta = JSON.stringify({ name: filename, appProperties: appProps });
+      const multipart = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`;
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${DRIVE_ID}?uploadType=multipart`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${DRIVE_TOKEN}`,
+          'Content-Type': `multipart/related; boundary=${boundary}`
+        },
+        body: multipart
+      });
+    } else {
+      // Create new file
+      const boundary = '-------drumtab';
+      const meta = JSON.stringify({ name: filename, parents: [DRIVE_FOLDER], appProperties: appProps });
+      const multipart = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`;
+      const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${DRIVE_TOKEN}`,
+          'Content-Type': `multipart/related; boundary=${boundary}`
+        },
+        body: multipart
+      });
+      const f = await r.json();
+      // Update URL without reload
+      history.replaceState({}, '', `editor.html?id=${f.id}&folder=${DRIVE_FOLDER}&token=${DRIVE_TOKEN}`);
+    }
+    const now = new Date().toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('saveStatus').textContent = `已儲存 ${now}`;
+    toast('已儲存至 Google Drive');
+  } catch(e) {
+    document.getElementById('saveStatus').textContent = '儲存失敗';
+    toast('儲存失敗，請檢查網路或重新登入');
+  }
+  document.getElementById('saveBtn').disabled = false;
+}
+
+async function loadFromDrive() {
+  if (!DRIVE_ID) return;
+  try {
+    const r = await gFetch(`https://www.googleapis.com/drive/v3/files/${DRIVE_ID}?alt=media`);
+    const data = await r.json();
+    applyData(data);
+    if (data.tags) { scoreTags = data.tags; renderTagChips(); }
+    renderAll();
+    toast('已載入');
+  } catch(e) { toast('載入失敗'); }
+}
+
+// ── TAG UI ──
+function manageTags() {
+  renderTagChips();
+  document.getElementById('tagModal').classList.add('open');
+  setTimeout(() => document.getElementById('tagInput').focus(), 80);
+}
+
+function addTag() {
+  const val = document.getElementById('tagInput').value.trim();
+  if (!val || scoreTags.includes(val)) { document.getElementById('tagInput').value = ''; return; }
+  scoreTags.push(val);
+  document.getElementById('tagInput').value = '';
+  renderTagChips();
+}
+
+function removeTag(i) {
+  scoreTags.splice(i, 1);
+  renderTagChips();
+}
+
+function renderTagChips() {
+  const wrap = document.getElementById('tagChipsWrap');
+  if (!wrap) return;
+  wrap.innerHTML = scoreTags.map((t, i) => `
+    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;border:1px solid #d8d8d0;font-size:0.72rem;background:#f8f8f5;color:#555;">
+      ${escHtml(t)}
+      <span style="cursor:pointer;color:#aaa;font-size:0.65rem;" onclick="removeTag(${i})">✕</span>
+    </span>
+  `).join('') || '<span style="font-size:0.72rem;color:#aaa">尚無標籤</span>';
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function autoSave() {
+  if (DRIVE_TOKEN) saveToDrive();
+  else localStorage.setItem('drumtab_v3', JSON.stringify(getData()));
+}
+setInterval(autoSave, 60000);
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'z') { e.preventDefault(); doRedo(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z') { e.preventDefault(); doUndo(); return; }
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'Escape') stopPlay();
+  if (e.key === 'e' || e.key === 'E') setSym('erase', document.getElementById('sym-erase'));
+  if (e.key === '4') setDur(4, document.getElementById('dur-4'));
+  if (e.key === '8') setDur(8, document.getElementById('dur-8'));
+  if (e.key === '6') setDur(16, document.getElementById('dur-16'));
+  if (e.key === '2') setDur(2, document.getElementById('dur-2'));
+  if (e.key === '1') setDur(1, document.getElementById('dur-1'));
+  if (e.key === 'x') setSym('x', document.getElementById('sym-x'));
+  if (e.key === 'o') setSym('o', document.getElementById('sym-o'));
+  if (e.key === 'r') setSym('r', document.getElementById('sym-r'));
+});
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+</script>
+</body>
+</html>

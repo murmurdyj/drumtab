@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鼓譜庫</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #fafaf8; color: #1a1a18;
+  font-family: 'Noto Sans TC', sans-serif; min-height: 100vh;
+}
+a { text-decoration: none; color: inherit; }
+
+/* HEADER */
+header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 28px; background: #fff;
+  border-bottom: 1px solid #e0e0d8; position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.08em; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.user-name { font-size: 0.78rem; color: #666; }
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: #1a1a18;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 0.7rem; font-weight: 700; cursor: pointer;
+}
+.btn {
+  padding: 6px 14px; border-radius: 4px; border: 1px solid #1a1a18;
+  background: #1a1a18; color: #fff; font-size: 0.78rem; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; transition: all 0.1s; white-space: nowrap;
+}
+.btn:hover { background: #333; }
+.btn.outline { background: transparent; color: #1a1a18; border-color: #c8c8c0; }
+.btn.outline:hover { background: #f0f0e8; border-color: #1a1a18; }
+.btn.danger { background: #c84040; border-color: #c84040; }
+.btn.danger:hover { background: #a83030; }
+
+/* LOGIN STATE */
+#loginView {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 70vh; gap: 16px; text-align: center;
+}
+.login-logo { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+.login-sub { color: #888; font-size: 0.85rem; margin-bottom: 16px; }
+.google-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 24px; border-radius: 4px;
+  border: 1px solid #c8c8c0; background: #fff;
+  font-size: 0.85rem; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.1s; color: #1a1a18;
+}
+.google-btn:hover { background: #f0f0e8; border-color: #1a1a18; }
+.google-icon { font-size: 1.1rem; }
+
+/* MAIN */
+#mainView { display: none; max-width: 860px; margin: 0 auto; padding: 28px 24px; }
+
+.page-title {
+  font-size: 1.2rem; font-weight: 700; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 10px;
+}
+.score-count { font-size: 0.72rem; font-weight: 400; color: #aaa; font-family: 'JetBrains Mono', monospace; }
+
+/* CONTROLS */
+.controls { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid #d8d8d0; border-radius: 4px;
+  padding: 6px 12px; flex: 1; min-width: 180px;
+}
+.search-wrap input {
+  border: none; outline: none; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.82rem; background: transparent; color: #1a1a18; width: 100%;
+}
+.sort-sel {
+  background: #fff; border: 1px solid #d8d8d0; color: #1a1a18;
+  padding: 6px 10px; border-radius: 4px; font-size: 0.78rem;
+  font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+}
+
+/* TAGS BAR */
+.tags-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.tags-label { font-size: 0.65rem; color: #aaa; font-family: 'JetBrains Mono', monospace; margin-right: 2px; text-transform: uppercase; }
+.tag-chip {
+  padding: 3px 10px; border-radius: 20px; border: 1px solid #d8d8d0;
+  background: #fff; font-size: 0.7rem; color: #666; cursor: pointer;
+  transition: all 0.1s; user-select: none;
+}
+.tag-chip:hover { border-color: #1a1a18; color: #1a1a18; }
+.tag-chip.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+.tag-add { border-style: dashed; color: #aaa; }
+.tag-add:hover { color: #1a1a18; border-color: #1a1a18; border-style: dashed; }
+
+/* SCORE LIST */
+.score-list {
+  display: flex; flex-direction: column; gap: 1px;
+  background: #e0e0d8; border: 1px solid #e0e0d8;
+  border-radius: 6px; overflow: hidden;
+}
+.score-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: #fff; cursor: pointer; transition: background 0.1s;
+}
+.score-row:hover { background: #f5f5f0; }
+.score-icon {
+  width: 32px; height: 32px; border-radius: 4px; background: #f0f0e8;
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;
+}
+.score-info { flex: 1; min-width: 0; }
+.score-name { font-size: 0.86rem; font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.score-meta { display: flex; align-items: center; gap: 10px; font-size: 0.68rem; color: #999; font-family: 'JetBrains Mono', monospace; }
+.score-tags { display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }
+.score-tag {
+  padding: 2px 7px; border-radius: 20px; font-size: 0.64rem;
+  border: 1px solid #d8d8d0; color: #666; background: #f8f8f5;
+  white-space: nowrap;
+}
+.score-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
+.score-row:hover .score-actions { opacity: 1; }
+.act-btn {
+  width: 26px; height: 26px; border-radius: 3px; border: 1px solid #d8d8d0;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; cursor: pointer; color: #666; transition: all 0.1s;
+}
+.act-btn:hover { border-color: #1a1a18; color: #1a1a18; }
+.act-btn.del:hover { border-color: #c84040; color: #c84040; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 60px 20px; color: #bbb; }
+.empty-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.empty-text { font-size: 0.82rem; margin-bottom: 16px; }
+
+/* LOADING */
+.loading { text-align: center; padding: 40px; color: #aaa; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 26px; right: 26px;
+  width: 46px; height: 46px; border-radius: 50%; background: #1a1a18; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  transition: transform 0.15s; border: none; font-family: monospace;
+}
+.fab:hover { transform: scale(1.08); }
+
+/* MODAL */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.28); z-index: 500;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: #fff; border: 1px solid #d8d8d0; border-radius: 6px;
+  padding: 22px; width: 360px; max-width: 92vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+}
+.modal h3 { font-size: 0.92rem; margin-bottom: 14px; }
+.modal label { display: block; font-size: 0.74rem; color: #888; margin-bottom: 3px; margin-top: 10px; }
+.modal input[type=text] {
+  width: 100%; border: 1px solid #d8d8d0; padding: 6px 9px;
+  border-radius: 3px; font-size: 0.8rem; font-family: 'Noto Sans TC', sans-serif;
+  background: #fafaf8; color: #1a1a18;
+}
+.modal input[type=text]:focus { outline: none; border-color: #1a1a18; }
+.modal-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 14px; }
+
+/* TAGS INPUT */
+.tags-input-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.tag-edit {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 20px; border: 1px solid #d8d8d0;
+  font-size: 0.7rem; background: #f8f8f5; color: #555;
+}
+.tag-edit .tag-del { cursor: pointer; color: #aaa; font-size: 0.65rem; }
+.tag-edit .tag-del:hover { color: #c84040; }
+.tag-input-field {
+  border: none; outline: none; font-size: 0.72rem; min-width: 80px;
+  font-family: 'Noto Sans TC', sans-serif; background: transparent; color: #1a1a18;
+}
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  background: #1a1a18; color: #fff; padding: 7px 16px; border-radius: 4px;
+  font-size: 0.76rem; opacity: 0; transition: opacity 0.2s; z-index: 999; pointer-events: none;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">DRUM</div>
+  <span style="font-size:0.72rem;color:#aaa;font-family:'JetBrains Mono',monospace;">鼓譜庫</span>
+  <div class="header-right" id="headerRight">
+    <button class="btn outline google-btn" onclick="signIn()" id="signInBtn">
+      <span class="google-icon">G</span> 登入 Google
+    </button>
+  </div>
+</header>
+
+<!-- LOGIN VIEW -->
+<div id="loginView">
+  <div class="login-logo">🥁 DRUM</div>
+  <div class="login-sub">登入後即可管理、編輯你所有的鼓譜</div>
+  <button class="google-btn" onclick="signIn()">
+    <span class="google-icon">G</span> 以 Google 帳號登入
+  </button>
+</div>
+
+<!-- MAIN VIEW -->
+<div id="mainView">
+  <div class="page-title">
+    我的鼓譜
+    <span class="score-count" id="scoreCount">0 張</span>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <span style="color:#aaa;font-size:0.82rem">🔍</span>
+      <input type="text" id="searchInput" placeholder="搜尋鼓譜名稱…" oninput="renderList()">
+    </div>
+    <select class="sort-sel" id="sortSel" onchange="renderList()">
+      <option value="newest">最新修改</option>
+      <option value="oldest">最舊</option>
+      <option value="az">名稱 A–Z</option>
+      <option value="za">名稱 Z–A</option>
+    </select>
+    <button class="btn" onclick="newScore()">＋ 新增</button>
+  </div>
+
+  <div class="tags-bar" id="tagsBar">
+    <span class="tags-label">標籤</span>
+  </div>
+
+  <div id="scoreList">
+    <div class="loading">載入中…</div>
+  </div>
+</div>
+
+<button class="fab" id="fab" onclick="newScore()" style="display:none" title="新增鼓譜">＋</button>
+
+<!-- MANAGE TAGS MODAL -->
+<div class="modal-bg" id="tagModal">
+  <div class="modal">
+    <h3>管理全域標籤</h3>
+    <label>新增標籤</label>
+    <input type="text" id="newTagInput" placeholder="輸入標籤名稱後按 Enter" onkeydown="if(event.key==='Enter')addGlobalTag()">
+    <label>現有標籤</label>
+    <div class="tags-input-wrap" id="globalTagList"></div>
+    <div class="modal-actions">
+      <button class="btn outline" onclick="closeModal('tagModal')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCORE TAGS MODAL -->
+<div class="modal-bg" id="scoreTagModal">
+  <div class="modal">
+    <h3 id="scoreTagModalTitle">編輯鼓譜標籤</h3>
+    <div class="tags-input-wrap" id="scoreTagChips"></div>
+    <div class="modal-actions">
+      <button class="btn outline" onclick="closeModal('scoreTagModal')">取消</button>
+      <button class="btn" onclick="saveScoreTags()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — 填入你的 Google API 資訊
+// ══════════════════════════════════════════════
+const CLIENT_ID = '499972066406-386bpsg83vmjel4v36toofnppbdkgqbg.apps.googleusercontent.com';   // ← 替換這裡
+const API_KEY   = 'AIzaSyAW5tLKMbbqtWhFFZS2VgCUY5W9NjT6LmM';     // ← 替換這裡
+const FOLDER_NAME = 'DrumTab';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let accessToken = null;
+let userInfo = null;
+let scores = [];       // { id, name, modifiedTime, bpm, timeSig, bars, tags }
+let globalTags = [];   // string[]
+let activeTags = [];   // currently filtered tags
+let folderId = null;
+let editingScoreId = null;
+
+// ══════════════════════════════════════════════
+// GOOGLE SIGN IN (using GIS)
+// ══════════════════════════════════════════════
+function signIn() {
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES + ' https://www.googleapis.com/auth/userinfo.profile',
+    callback: async (resp) => {
+      if (resp.error) { toast('登入失敗：' + resp.error); return; }
+      accessToken = resp.access_token;
+      await loadUserInfo();
+      showMain();
+      await ensureFolder();
+      await loadScores();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function signOut() {
+  google.accounts.oauth2.revoke(accessToken, () => {
+    accessToken = null; userInfo = null; scores = [];
+    document.getElementById('mainView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'flex';
+    document.getElementById('fab').style.display = 'none';
+    document.getElementById('headerRight').innerHTML =
+      `<button class="btn outline" onclick="signIn()">G 登入 Google</button>`;
+  });
+}
+
+async function loadUserInfo() {
+  const r = await gFetch('https://www.googleapis.com/oauth2/v2/userinfo');
+  userInfo = await r.json();
+  const initial = (userInfo.name || userInfo.email || '?')[0].toUpperCase();
+  document.getElementById('headerRight').innerHTML = `
+    <span class="user-name">${userInfo.name || userInfo.email}</span>
+    <div class="avatar" title="登出" onclick="signOut()">${initial}</div>
+  `;
+}
+
+function showMain() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('mainView').style.display = 'block';
+  document.getElementById('fab').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════
+// DRIVE API HELPERS
+// ══════════════════════════════════════════════
+async function gFetch(url, opts = {}) {
+  return fetch(url, {
+    ...opts,
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  });
+}
+
+async function ensureFolder() {
+  const r = await gFetch(`https://www.googleapis.com/drive/v3/files?q=name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id)`);
+  const d = await r.json();
+  if (d.files && d.files.length > 0) { folderId = d.files[0].id; return; }
+  const cr = await gFetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    body: JSON.stringify({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+  });
+  const cf = await cr.json();
+  folderId = cf.id;
+}
+
+async function loadScores() {
+  document.getElementById('scoreList').innerHTML = '<div class="loading">載入中…</div>';
+  const r = await gFetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}' in parents and name contains '.drum.json' and trashed=false&fields=files(id,name,modifiedTime,appProperties)&orderBy=modifiedTime desc`);
+  const d = await r.json();
+  scores = (d.files || []).map(f => ({
+    id: f.id,
+    name: f.name.replace(/\.drum\.json$/, ''),
+    modifiedTime: f.modifiedTime,
+    bpm: f.appProperties?.bpm || '—',
+    timeSig: f.appProperties?.timeSig || '—',
+    bars: f.appProperties?.bars || '—',
+    tags: f.appProperties?.tags ? JSON.parse(f.appProperties.tags) : [],
+  }));
+  // Collect all tags
+  const allTags = new Set();
+  scores.forEach(s => s.tags.forEach(t => allTags.add(t)));
+  globalTags = [...allTags];
+  renderTagsBar();
+  renderList();
+}
+
+async function deleteScore(id, name) {
+  if (!confirm(`確定刪除「${name}」？此動作無法復原。`)) return;
+  await gFetch(`https://www.googleapis.com/drive/v3/files/${id}`, { method: 'DELETE' });
+  scores = scores.filter(s => s.id !== id);
+  renderList();
+  toast(`已刪除：${name}`);
+}
+
+async function duplicateScore(id, name) {
+  await gFetch(`https://www.googleapis.com/drive/v3/files/${id}/copy`, {
+    method: 'POST',
+    body: JSON.stringify({ name: name + ' (複製).drum.json', parents: [folderId] })
+  });
+  await loadScores();
+  toast(`已複製：${name}`);
+}
+
+async function saveScoreTagsToDrive() {
+  const score = scores.find(s => s.id === editingScoreId);
+  if (!score) return;
+  await gFetch(`https://www.googleapis.com/drive/v3/files/${editingScoreId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ appProperties: { tags: JSON.stringify(score.tags) } })
+  });
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function renderTagsBar() {
+  const bar = document.getElementById('tagsBar');
+  bar.innerHTML = '<span class="tags-label">標籤</span>';
+
+  const allChip = document.createElement('div');
+  allChip.className = 'tag-chip' + (activeTags.length === 0 ? ' active' : '');
+  allChip.textContent = '全部';
+  allChip.onclick = () => { activeTags = []; renderTagsBar(); renderList(); };
+  bar.appendChild(allChip);
+
+  globalTags.forEach(tag => {
+    const chip = document.createElement('div');
+    chip.className = 'tag-chip' + (activeTags.includes(tag) ? ' active' : '');
+    chip.textContent = tag;
+    chip.onclick = () => {
+      if (activeTags.includes(tag)) activeTags = activeTags.filter(t => t !== tag);
+      else activeTags.push(tag);
+      renderTagsBar(); renderList();
+    };
+    bar.appendChild(chip);
+  });
+
+  const addChip = document.createElement('div');
+  addChip.className = 'tag-chip tag-add';
+  addChip.textContent = '＋ 新標籤';
+  addChip.onclick = openTagModal;
+  bar.appendChild(addChip);
+}
+
+function renderList() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const sort = document.getElementById('sortSel').value;
+
+  let filtered = scores.filter(s => {
+    const nameMatch = s.name.toLowerCase().includes(query);
+    const tagMatch = activeTags.length === 0 || activeTags.every(t => s.tags.includes(t));
+    return nameMatch && tagMatch;
+  });
+
+  filtered.sort((a, b) => {
+    if (sort === 'newest') return new Date(b.modifiedTime) - new Date(a.modifiedTime);
+    if (sort === 'oldest') return new Date(a.modifiedTime) - new Date(b.modifiedTime);
+    if (sort === 'az') return a.name.localeCompare(b.name, 'zh-TW');
+    if (sort === 'za') return b.name.localeCompare(a.name, 'zh-TW');
+  });
+
+  document.getElementById('scoreCount').textContent = `${scores.length} 張`;
+  const list = document.getElementById('scoreList');
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🥁</div>
+        <div class="empty-text">${query || activeTags.length ? '沒有符合的鼓譜' : '還沒有鼓譜，點下方 ＋ 新增第一張！'}</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'score-list';
+
+  filtered.forEach(score => {
+    const row = document.createElement('div');
+    row.className = 'score-row';
+    row.innerHTML = `
+      <div class="score-icon">🥁</div>
+      <div class="score-info">
+        <div class="score-name">${escHtml(score.name)}</div>
+        <div class="score-meta">
+          <span>${score.timeSig} · ${score.bpm} BPM · ${score.bars} 小節</span>
+          <span>${relTime(score.modifiedTime)}</span>
+        </div>
+      </div>
+      <div class="score-tags">${score.tags.map(t => `<span class="score-tag">${escHtml(t)}</span>`).join('')}</div>
+      <div class="score-actions">
+        <div class="act-btn" title="編輯標籤" onclick="openScoreTagModal('${score.id}',event)">🏷</div>
+        <div class="act-btn" title="複製" onclick="duplicateScore('${score.id}','${escHtml(score.name)}');event.stopPropagation()">⧉</div>
+        <div class="act-btn del" title="刪除" onclick="deleteScore('${score.id}','${escHtml(score.name)}');event.stopPropagation()">✕</div>
+      </div>
+    `;
+    row.onclick = () => openEditor(score.id);
+    wrap.appendChild(row);
+  });
+
+  list.appendChild(wrap);
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function newScore() {
+  window.location.href = 'editor.html?new=1&folder=' + folderId + '&token=' + accessToken;
+}
+
+function openEditor(id) {
+  window.location.href = `editor.html?id=${id}&folder=${folderId}&token=${accessToken}`;
+}
+
+// ══════════════════════════════════════════════
+// TAG MANAGEMENT
+// ══════════════════════════════════════════════
+function openTagModal() {
+  renderGlobalTagList();
+  document.getElementById('tagModal').classList.add('open');
+}
+
+function renderGlobalTagList() {
+  const el = document.getElementById('globalTagList');
+  el.innerHTML = globalTags.map((t, i) => `
+    <div class="tag-edit">
+      ${escHtml(t)}
+      <span class="tag-del" onclick="removeGlobalTag(${i})">✕</span>
+    </div>
+  `).join('') || '<span style="font-size:0.72rem;color:#aaa">尚無標籤</span>';
+}
+
+function addGlobalTag() {
+  const val = document.getElementById('newTagInput').value.trim();
+  if (!val || globalTags.includes(val)) return;
+  globalTags.push(val);
+  document.getElementById('newTagInput').value = '';
+  renderGlobalTagList();
+  renderTagsBar();
+  toast(`已新增標籤：${val}`);
+}
+
+function removeGlobalTag(i) {
+  const tag = globalTags[i];
+  if (!confirm(`刪除標籤「${tag}」？不會影響已有此標籤的鼓譜。`)) return;
+  globalTags.splice(i, 1);
+  activeTags = activeTags.filter(t => t !== tag);
+  renderGlobalTagList();
+  renderTagsBar();
+  renderList();
+}
+
+function openScoreTagModal(id, e) {
+  e.stopPropagation();
+  editingScoreId = id;
+  const score = scores.find(s => s.id === id);
+  document.getElementById('scoreTagModalTitle').textContent = `標籤：${score.name}`;
+  const el = document.getElementById('scoreTagChips');
+  el.innerHTML = globalTags.map(t => `
+    <div class="tag-chip ${score.tags.includes(t) ? 'active' : ''}"
+      onclick="this.classList.toggle('active')" data-tag="${escHtml(t)}">${escHtml(t)}</div>
+  `).join('');
+  if (globalTags.length === 0) el.innerHTML = '<span style="font-size:0.76rem;color:#aaa">請先在「＋ 新標籤」建立標籤</span>';
+  document.getElementById('scoreTagModal').classList.add('open');
+}
+
+async function saveScoreTags() {
+  const score = scores.find(s => s.id === editingScoreId);
+  const chips = document.querySelectorAll('#scoreTagChips .tag-chip.active');
+  score.tags = [...chips].map(c => c.dataset.tag);
+  closeModal('scoreTagModal');
+  await saveScoreTagsToDrive();
+  renderList();
+  toast('標籤已儲存');
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function relTime(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return '剛剛';
+  if (m < 60) return `${m} 分鐘前`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} 小時前`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d} 天前`;
+  if (d < 30) return `${Math.floor(d/7)} 週前`;
+  if (d < 365) return `${Math.floor(d/30)} 個月前`;
+  return `${Math.floor(d/365)} 年前`;
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+</script>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
