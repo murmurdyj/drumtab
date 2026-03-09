@@ -408,7 +408,11 @@ svg.staff {
       <option>6/8</option><option>7/8</option><option>7/4</option>
       <option>5/4</option><option>5/8</option><option>9/8</option>
       <option>12/8</option><option>3/7</option>
+      <option value="custom">自訂…</option>
     </select>
+    <input type="text" id="sigCustom" placeholder="如 11/8"
+      style="display:none;width:54px;font-size:0.76rem;padding:3px 5px;border:1px solid #c8c8c0;border-radius:3px;font-family:'Noto Sans TC',sans-serif;"
+      onkeydown="if(event.key==='Enter')applyCustomSig()">
   </div>
   <div class="toolbar-group">
     <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ 播放</button>
@@ -1090,13 +1094,41 @@ function updateTimer() {
     `Bar ${bar} · Beat ${beat} · ${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 }
 
+function applyCustomSig() {
+  const val = document.getElementById('sigCustom').value.trim();
+  if (!val.match(/^\d+\/\d+$/)) { toast('格式錯誤，請輸入如 11/8'); return; }
+  timeSig = val;
+  // Add as option if not exists
+  const sel = document.getElementById('sigSelect');
+  let found = false;
+  for (let o of sel.options) { if (o.value === val) { found = true; sel.value = val; break; } }
+  if (!found) {
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = val;
+    sel.insertBefore(opt, sel.querySelector('[value="custom"]'));
+    sel.value = val;
+  }
+  document.getElementById('sigCustom').style.display = 'none';
+  initDefault();
+  renderAll();
+  toast(`拍號已設為 ${timeSig}`);
+}
+
 function updateBpm(v) {
   bpm = parseInt(v);
   document.getElementById('bpmNum').textContent = v;
 }
 
 function updateSig() {
-  timeSig = document.getElementById('sigSelect').value;
+  const val = document.getElementById('sigSelect').value;
+  const customInput = document.getElementById('sigCustom');
+  if (val === 'custom') {
+    customInput.style.display = 'inline-block';
+    customInput.focus();
+    return;
+  }
+  customInput.style.display = 'none';
+  timeSig = val;
 }
 
 // ═══════════════════════════════════
