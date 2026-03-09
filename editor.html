@@ -578,23 +578,21 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function initDefault() {
-  sections = [
-    makeSection('前奏', 4),
-    makeSection('主歌', 8),
-    makeSection('副歌', 8),
-  ];
+  sections = [ makeSection('段落 1', 8) ];
   activeSec = 0;
 }
 
 function makeSection(name, bars) {
   const cpm = cellsPerMeasure();
   const measures = [];
+  const lyrics = [];
   for (let m = 0; m < bars; m++) {
     const rows = [];
     for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
     measures.push(rows);
+    lyrics.push('');
   }
-  return { name, measures };
+  return { name, measures, lyrics };
 }
 
 function applyData(d) {
@@ -620,8 +618,22 @@ function renderSectionTabs() {
   sections.forEach((sec, i) => {
     const tab = document.createElement('div');
     tab.className = 'sec-tab' + (i === activeSec ? ' active' : '');
-    tab.textContent = sec.name;
-    tab.onclick = () => { activeSec = i; renderAll(); };
+    tab.style.cssText = 'display:inline-flex;align-items:center;gap:5px;';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = sec.name;
+    nameSpan.onclick = () => { activeSec = i; renderAll(); };
+    nameSpan.style.cursor = 'pointer';
+    tab.appendChild(nameSpan);
+    if (i === activeSec && sections.length > 1) {
+      const del = document.createElement('span');
+      del.textContent = '✕';
+      del.title = '刪除此段落';
+      del.style.cssText = 'font-size:0.6rem;color:#aaa;cursor:pointer;padding:0 1px;';
+      del.onmouseenter = () => del.style.color = '#c84040';
+      del.onmouseleave = () => del.style.color = '#aaa';
+      del.onclick = (e) => { e.stopPropagation(); deleteSection(i); };
+      tab.appendChild(del);
+    }
     bar.appendChild(tab);
   });
   const add = document.createElement('div');
@@ -629,6 +641,16 @@ function renderSectionTabs() {
   add.textContent = '＋';
   add.onclick = addSection;
   bar.appendChild(add);
+}
+
+function deleteSection(i) {
+  if (sections.length <= 1) { toast('至少保留一個段落'); return; }
+  if (!confirm(`確定刪除段落「${sections[i].name}」？`)) return;
+  sections.splice(i, 1);
+  activeSec = Math.min(activeSec, sections.length - 1);
+  renderAll();
+  autoSave();
+  toast('已刪除段落');
 }
 
 // ═══════════════════════════════════
@@ -652,7 +674,9 @@ function renderStaff() {
     const svgW = LABEL_W + totalCells * CELL_W + 20;
 
     const div = document.createElement('div');
-    div.style.cssText = 'display:flex;align-items:flex-start;margin-bottom:24px;';
+    div.style.cssText = 'display:flex;flex-direction:column;margin-bottom:24px;';
+    const staffRow = document.createElement('div');
+    staffRow.style.cssText = 'display:flex;align-items:flex-start;';
 
     // Instrument labels
     const labelDiv = document.createElement('div');
@@ -667,7 +691,7 @@ function renderStaff() {
       lbl.onclick = () => { mutedInst.has(i) ? mutedInst.delete(i) : mutedInst.add(i); renderStaff(); };
       labelDiv.appendChild(lbl);
     });
-    div.appendChild(labelDiv);
+    staffRow.appendChild(labelDiv);
 
     // SVG staff
     const svg = document.createElementNS(SVG_NS, 'svg');
@@ -713,8 +737,24 @@ function renderStaff() {
       const nCells = meas[0].length;
       const measW = nCells * CELL_W;
 
-      // Measure number
+      // Measure number + delete button
       text(svg, xOffset + 2, STAFF_PAD_TOP - 1, String(globalMeasIdx + 1), '#aaa', '7px');
+      if (sections[activeSec].measures.length > 1) {
+        const delRect = document.createElementNS(SVG_NS, 'text');
+        delRect.setAttribute('x', xOffset + measW - 10);
+        delRect.setAttribute('y', STAFF_PAD_TOP - 1);
+        delRect.setAttribute('font-size', '7px');
+        delRect.setAttribute('fill', '#ccc');
+        delRect.setAttribute('cursor', 'pointer');
+        delRect.textContent = '✕';
+        delRect.addEventListener('mouseenter', function(){ this.setAttribute('fill','#c84040'); });
+        delRect.addEventListener('mouseleave', function(){ this.setAttribute('fill','#ccc'); });
+        delRect.addEventListener('click', function(e){
+          e.stopPropagation();
+          deleteMeasureAt(globalMeasIdx);
+        });
+        svg.appendChild(delRect);
+      }
 
       // Beat subdivisions (subtle)
       const beatsPerMeas = parseInt(timeSig.split('/')[0]) || 4;
@@ -763,7 +803,35 @@ function renderStaff() {
     line(svg, xOffset, STAFF_PAD_TOP, xOffset, STAFF_H - STAFF_PAD_BOT, '#444', 2.5);
     line(svg, xOffset + 3, STAFF_PAD_TOP, xOffset + 3, STAFF_H - STAFF_PAD_BOT, '#444', 5);
 
-    div.appendChild(svg);
+    staffRow.appendChild(svg);
+    div.appendChild(staffRow);
+
+    // Lyrics row (below the staff)
+    const lyricsRow = document.createElement('div');
+    lyricsRow.style.cssText = `display:flex;margin-left:${LABEL_W}px;margin-top:0;margin-bottom:0;`;
+    rowMeasures.forEach((meas, mIdx) => {
+      const globalMeasIdx = rowStart + mIdx;
+      const nCells = meas[0].length;
+      const measW = nCells * CELL_W;
+      const sec = sections[activeSec];
+      if (!sec.lyrics) sec.lyrics = new Array(sec.measures.length).fill('');
+      const val = sec.lyrics[globalMeasIdx] || '';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = val;
+      inp.placeholder = '歌詞…';
+      inp.dataset.measIdx = globalMeasIdx;
+      inp.style.cssText = `width:${measW}px;border:none;border-bottom:1px solid #e0e0d8;background:transparent;font-size:0.72rem;font-family:'Noto Sans TC',sans-serif;color:#444;padding:3px 4px;outline:none;box-sizing:border-box;`;
+      inp.addEventListener('input', function() {
+        const sec = sections[activeSec];
+        if (!sec.lyrics) sec.lyrics = new Array(sec.measures.length).fill('');
+        sec.lyrics[parseInt(this.dataset.measIdx)] = this.value;
+      });
+      inp.addEventListener('blur', autoSave);
+      lyricsRow.appendChild(inp);
+    });
+    div.appendChild(lyricsRow);
+
     wrap.appendChild(div);
   }
 }
@@ -965,7 +1033,10 @@ function addMeasure() {
   const cpm = cellsPerMeasure();
   const rows = [];
   for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
-  sections[activeSec].measures.push(rows);
+  const sec = sections[activeSec];
+  sec.measures.push(rows);
+  if (!sec.lyrics) sec.lyrics = [];
+  sec.lyrics.push('');
   renderStaff();
   updateMeasureInfo();
   autoSave();
@@ -973,12 +1044,25 @@ function addMeasure() {
 }
 
 function removeMeasure() {
-  const m = sections[activeSec].measures;
-  if (m.length <= 1) { toast('至少保留一個小節'); return; }
-  m.pop();
+  const sec = sections[activeSec];
+  if (sec.measures.length <= 1) { toast('至少保留一個小節'); return; }
+  sec.measures.pop();
+  if (sec.lyrics && sec.lyrics.length > 0) sec.lyrics.pop();
   renderStaff();
   updateMeasureInfo();
   autoSave();
+}
+
+function deleteMeasureAt(idx) {
+  const sec = sections[activeSec];
+  if (sec.measures.length <= 1) { toast('至少保留一個小節'); return; }
+  snapshotForUndo();
+  sec.measures.splice(idx, 1);
+  if (sec.lyrics) sec.lyrics.splice(idx, 1);
+  renderStaff();
+  updateMeasureInfo();
+  autoSave();
+  toast(`已刪除第 ${idx + 1} 小節`);
 }
 
 function updateMeasureInfo() {
@@ -1195,6 +1279,14 @@ async function gFetch(url, opts = {}) {
       ...(opts.headers || {})
     }
   });
+}
+
+function getData() {
+  return {
+    title: document.getElementById('songTitle').value,
+    sections, bpm, timeSig,
+    savedAt: new Date().toISOString(),
+  };
 }
 
 async function saveToDrive() {
