@@ -209,36 +209,7 @@ input[type=range] { width: 80px; accent-color: var(--text); cursor: pointer; }
 .play-btn:hover { background: #333; border-color: #333; }
 
 /* ── SECTION TABS ── */
-.section-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  overflow-x: auto;
-}
-.sec-tab {
-  padding: 7px 14px;
-  font-size: 0.76rem;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  color: var(--text2);
-  white-space: nowrap;
-  transition: all 0.1s;
-  user-select: none;
-}
-.sec-tab:hover { color: var(--text); }
-.sec-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
-.sec-tab-add {
-  padding: 7px 10px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  color: var(--muted);
-  transition: color 0.1s;
-}
-.sec-tab-add:hover { color: var(--text); }
+
 
 /* ── SCORE AREA ── */
 .score-area {
@@ -446,11 +417,6 @@ svg.staff {
   </div>
 </div>
 
-<!-- SECTION TABS -->
-<div class="section-tabs" id="sectionTabs">
-  <div class="sec-tab-add" onclick="addSection()">＋</div>
-</div>
-
 <!-- SCORE AREA -->
 <div class="score-area" id="scoreArea">
   <div class="staff-container" id="staffContainer">
@@ -483,20 +449,7 @@ svg.staff {
   </div>
 </div>
 
-<!-- ADD SECTION MODAL -->
-<div class="modal-bg" id="addSecModal">
-  <div class="modal">
-    <h3>新增段落</h3>
-    <label>段落名稱</label>
-    <input type="text" id="newSecName" placeholder="如：前奏、主歌、副歌…">
-    <label>小節數</label>
-    <input type="text" id="newSecBars" value="4">
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal('addSecModal')">取消</button>
-      <button class="btn dark" onclick="confirmAddSection()">新增</button>
-    </div>
-  </div>
-</div>
+
 
 <div id="toast"></div>
 
@@ -522,7 +475,7 @@ const N_INST = INSTRUMENTS.length;
 // SVG layout constants
 const CELL_W = 28;       // width per 16th note cell
 const ROW_H  = 14;       // height per instrument row
-const STAFF_PAD_TOP = 8;
+const STAFF_PAD_TOP = 18;
 const STAFF_PAD_BOT = 8;
 const LABEL_W = 40;
 const STAFF_H = N_INST * ROW_H + STAFF_PAD_TOP + STAFF_PAD_BOT;
@@ -533,9 +486,9 @@ const STAFF_LINES = [2, 3, 4, 5, 6]; // lineIdx values that get a real line
 // ═══════════════════════════════════
 // STATE
 // ═══════════════════════════════════
-let sections = [];      // { name, measures: [ [N_INST][cells] ] }
-let activeSec = 0;
-let currentDur = 4;     // 1,2,4,8,16
+let measures = [];      // [ [N_INST][cells] ]  — flat, no sections
+let lyrics = [];        // string[] one per measure
+let currentDur = 4;
 let currentSym = 'x';
 let bpm = 120;
 let timeSig = '4/4';
@@ -570,88 +523,55 @@ window.addEventListener('DOMContentLoaded', () => {
   if (DRIVE_ID && DRIVE_TOKEN) {
     loadFromDrive();
   } else {
-    const s = localStorage.getItem('drumtab_v3');
-    if (s) { try { applyData(JSON.parse(s)); } catch(e){} }
+    const s = localStorage.getItem('drumtab_v4');
+    if (s) { try { applyData(JSON.parse(s)); } catch(e){ initDefault(); } }
     else initDefault();
     renderAll();
   }
 });
 
 function initDefault() {
-  sections = [ makeSection('段落 1', 8) ];
-  activeSec = 0;
-}
-
-function makeSection(name, bars) {
+  measures = [];
+  lyrics = [];
   const cpm = cellsPerMeasure();
-  const measures = [];
-  const lyrics = [];
-  for (let m = 0; m < bars; m++) {
+  for (let m = 0; m < 8; m++) {
     const rows = [];
     for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
     measures.push(rows);
     lyrics.push('');
   }
-  return { name, measures, lyrics };
 }
 
 function applyData(d) {
   if (d.title) document.getElementById('songTitle').value = d.title;
-  if (d.sections) sections = d.sections;
+  // Support both new flat format and old sections format
+  if (d.measures) {
+    measures = d.measures;
+    lyrics = d.lyrics || new Array(measures.length).fill('');
+  } else if (d.sections && d.sections.length > 0) {
+    // migrate old format: flatten all sections
+    measures = [];
+    lyrics = [];
+    d.sections.forEach(sec => {
+      sec.measures.forEach((m, i) => {
+        measures.push(m);
+        lyrics.push(sec.lyrics ? (sec.lyrics[i] || '') : '');
+      });
+    });
+  }
   if (d.bpm) { bpm = d.bpm; document.getElementById('bpmSlider').value = bpm; document.getElementById('bpmNum').textContent = bpm; }
   if (d.timeSig) { timeSig = d.timeSig; document.getElementById('sigSelect').value = timeSig; }
-  activeSec = 0;
 }
 
 // ═══════════════════════════════════
 // RENDER ALL
 // ═══════════════════════════════════
 function renderAll() {
-  renderSectionTabs();
   renderStaff();
   updateMeasureInfo();
 }
 
-function renderSectionTabs() {
-  const bar = document.getElementById('sectionTabs');
-  bar.innerHTML = '';
-  sections.forEach((sec, i) => {
-    const tab = document.createElement('div');
-    tab.className = 'sec-tab' + (i === activeSec ? ' active' : '');
-    tab.style.cssText = 'display:inline-flex;align-items:center;gap:5px;';
-    const nameSpan = document.createElement('span');
-    nameSpan.textContent = sec.name;
-    nameSpan.onclick = () => { activeSec = i; renderAll(); };
-    nameSpan.style.cursor = 'pointer';
-    tab.appendChild(nameSpan);
-    if (i === activeSec && sections.length > 1) {
-      const del = document.createElement('span');
-      del.textContent = '✕';
-      del.title = '刪除此段落';
-      del.style.cssText = 'font-size:0.6rem;color:#aaa;cursor:pointer;padding:0 1px;';
-      del.onmouseenter = () => del.style.color = '#c84040';
-      del.onmouseleave = () => del.style.color = '#aaa';
-      del.onclick = (e) => { e.stopPropagation(); deleteSection(i); };
-      tab.appendChild(del);
-    }
-    bar.appendChild(tab);
-  });
-  const add = document.createElement('div');
-  add.className = 'sec-tab-add';
-  add.textContent = '＋';
-  add.onclick = addSection;
-  bar.appendChild(add);
-}
-
-function deleteSection(i) {
-  if (sections.length <= 1) { toast('至少保留一個段落'); return; }
-  if (!confirm(`確定刪除段落「${sections[i].name}」？`)) return;
-  sections.splice(i, 1);
-  activeSec = Math.min(activeSec, sections.length - 1);
-  renderAll();
-  autoSave();
-  toast('已刪除段落');
-}
+// sections removed — flat measures only
 
 // ═══════════════════════════════════
 // STAFF RENDERING (SVG)
@@ -659,12 +579,10 @@ function deleteSection(i) {
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function renderStaff() {
-  const sec = sections[activeSec];
   const wrap = document.getElementById('staffWrap');
   wrap.innerHTML = '';
 
   const BARS_PER_ROW = 4;
-  const measures = sec.measures;
   const cpm = cellsPerMeasure();
 
   // Group measures into rows of BARS_PER_ROW
@@ -738,8 +656,24 @@ function renderStaff() {
       const measW = nCells * CELL_W;
 
       // Measure number + delete button
-      text(svg, xOffset + 2, STAFF_PAD_TOP - 1, String(globalMeasIdx + 1), '#aaa', '7px');
-      if (sections[activeSec].measures.length > 1) {
+      // Measure number label
+      const mnBg = document.createElementNS(SVG_NS, 'rect');
+      mnBg.setAttribute('x', xOffset + 1);
+      mnBg.setAttribute('y', 1);
+      mnBg.setAttribute('width', 22);
+      mnBg.setAttribute('height', 13);
+      mnBg.setAttribute('rx', 2);
+      mnBg.setAttribute('fill', '#f0f0e8');
+      svg.appendChild(mnBg);
+      const mnTxt = document.createElementNS(SVG_NS, 'text');
+      mnTxt.setAttribute('x', xOffset + 4);
+      mnTxt.setAttribute('y', 11);
+      mnTxt.setAttribute('fill', '#888');
+      mnTxt.setAttribute('font-size', '8px');
+      mnTxt.setAttribute('font-family', 'JetBrains Mono, monospace');
+      mnTxt.textContent = `小節 ${globalMeasIdx + 1}`;
+      svg.appendChild(mnTxt);
+      if (measures.length > 1) {
         const delRect = document.createElementNS(SVG_NS, 'text');
         delRect.setAttribute('x', xOffset + measW - 10);
         delRect.setAttribute('y', STAFF_PAD_TOP - 1);
@@ -813,9 +747,8 @@ function renderStaff() {
       const globalMeasIdx = rowStart + mIdx;
       const nCells = meas[0].length;
       const measW = nCells * CELL_W;
-      const sec = sections[activeSec];
-      if (!sec.lyrics) sec.lyrics = new Array(sec.measures.length).fill('');
-      const val = sec.lyrics[globalMeasIdx] || '';
+      while (lyrics.length < measures.length) lyrics.push('');
+      const val = lyrics[globalMeasIdx] || '';
       const inp = document.createElement('input');
       inp.type = 'text';
       inp.value = val;
@@ -823,9 +756,8 @@ function renderStaff() {
       inp.dataset.measIdx = globalMeasIdx;
       inp.style.cssText = `width:${measW}px;border:none;border-bottom:1px solid #e0e0d8;background:transparent;font-size:0.72rem;font-family:'Noto Sans TC',sans-serif;color:#444;padding:3px 4px;outline:none;box-sizing:border-box;`;
       inp.addEventListener('input', function() {
-        const sec = sections[activeSec];
-        if (!sec.lyrics) sec.lyrics = new Array(sec.measures.length).fill('');
-        sec.lyrics[parseInt(this.dataset.measIdx)] = this.value;
+        while (lyrics.length < measures.length) lyrics.push('');
+        lyrics[parseInt(this.dataset.measIdx)] = this.value;
       });
       inp.addEventListener('blur', autoSave);
       lyricsRow.appendChild(inp);
@@ -954,7 +886,7 @@ function text(svg, x, y, str, fill, size, weight) {
 // UNDO / REDO
 // ═══════════════════════════════════
 function snapshotForUndo() {
-  undoStack.push(JSON.stringify(sections));
+  undoStack.push(JSON.stringify({ measures, lyrics }));
   if (undoStack.length > MAX_HISTORY) undoStack.shift();
   redoStack = [];
   updateUndoButtons();
@@ -962,8 +894,8 @@ function snapshotForUndo() {
 
 function doUndo() {
   if (!undoStack.length) { toast('沒有可以回復的步驟'); return; }
-  redoStack.push(JSON.stringify(sections));
-  sections = JSON.parse(undoStack.pop());
+  redoStack.push(JSON.stringify({ measures, lyrics }));
+  const us = JSON.parse(undoStack.pop()); measures = us.measures; lyrics = us.lyrics || [];
   updateUndoButtons();
   renderStaff();
   updateMeasureInfo();
@@ -972,8 +904,8 @@ function doUndo() {
 
 function doRedo() {
   if (!redoStack.length) { toast('沒有可以重做的步驟'); return; }
-  undoStack.push(JSON.stringify(sections));
-  sections = JSON.parse(redoStack.pop());
+  undoStack.push(JSON.stringify({ measures, lyrics }));
+  const rs = JSON.parse(redoStack.pop()); measures = rs.measures; lyrics = rs.lyrics || [];
   updateUndoButtons();
   renderStaff();
   updateMeasureInfo();
@@ -992,8 +924,7 @@ function updateUndoButtons() {
 // ═══════════════════════════════════
 function handleCellClick(measIdx, instIdx, cellIdx) {
   snapshotForUndo();
-  const sec = sections[activeSec];
-  const meas = sec.measures[measIdx];
+  const meas = measures[measIdx];
 
   if (currentSym === 'erase') {
     meas[instIdx][cellIdx] = null;
@@ -1033,10 +964,8 @@ function addMeasure() {
   const cpm = cellsPerMeasure();
   const rows = [];
   for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
-  const sec = sections[activeSec];
-  sec.measures.push(rows);
-  if (!sec.lyrics) sec.lyrics = [];
-  sec.lyrics.push('');
+  measures.push(rows);
+  lyrics.push('');
   renderStaff();
   updateMeasureInfo();
   autoSave();
@@ -1044,21 +973,19 @@ function addMeasure() {
 }
 
 function removeMeasure() {
-  const sec = sections[activeSec];
-  if (sec.measures.length <= 1) { toast('至少保留一個小節'); return; }
-  sec.measures.pop();
-  if (sec.lyrics && sec.lyrics.length > 0) sec.lyrics.pop();
+  if (measures.length <= 1) { toast('至少保留一個小節'); return; }
+  measures.pop();
+  if (lyrics.length > 0) lyrics.pop();
   renderStaff();
   updateMeasureInfo();
   autoSave();
 }
 
 function deleteMeasureAt(idx) {
-  const sec = sections[activeSec];
-  if (sec.measures.length <= 1) { toast('至少保留一個小節'); return; }
+  if (measures.length <= 1) { toast('至少保留一個小節'); return; }
   snapshotForUndo();
-  sec.measures.splice(idx, 1);
-  if (sec.lyrics) sec.lyrics.splice(idx, 1);
+  measures.splice(idx, 1);
+  lyrics.splice(idx, 1);
   renderStaff();
   updateMeasureInfo();
   autoSave();
@@ -1066,10 +993,9 @@ function deleteMeasureAt(idx) {
 }
 
 function updateMeasureInfo() {
-  const total = sections[activeSec].measures.length;
-  document.getElementById('measureInfo').textContent = `第 ${activeSec + 1} 段 · ${total} 小節`;
-  const allBars = sections.reduce((a, s) => a + s.measures.length, 0);
-  document.getElementById('totalBars').textContent = `共 ${allBars} 小節`;
+  const total = measures.length;
+  document.getElementById('measureInfo').textContent = `${total} 小節`;
+  document.getElementById('totalBars').textContent = `共 ${total} 小節`;
 }
 
 // ═══════════════════════════════════
@@ -1082,15 +1008,7 @@ function addSection() {
   setTimeout(() => document.getElementById('newSecName').focus(), 80);
 }
 
-function confirmAddSection() {
-  const name = document.getElementById('newSecName').value.trim() || '新段落';
-  const bars = Math.max(1, parseInt(document.getElementById('newSecBars').value) || 4);
-  sections.push(makeSection(name, bars));
-  activeSec = sections.length - 1;
-  closeModal('addSecModal');
-  renderAll();
-  toast(`已新增段落：${name}`);
-}
+// confirmAddSection removed
 
 // ═══════════════════════════════════
 // PLAYBACK
@@ -1139,8 +1057,7 @@ function toggleLoop() {
 
 function tick() {
   if (!isPlaying) return;
-  const sec = sections[activeSec];
-  const allCells = sec.measures.flatMap(m =>
+  const allCells = measures.flatMap(m =>
     Array.from({ length: m[0].length }, (_, ci) =>
       INSTRUMENTS.map((inst, ii) => ({ inst: ii, cell: m[ii][ci] }))
     )
@@ -1284,7 +1201,7 @@ async function gFetch(url, opts = {}) {
 function getData() {
   return {
     title: document.getElementById('songTitle').value,
-    sections, bpm, timeSig,
+    measures, lyrics, bpm, timeSig,
     savedAt: new Date().toISOString(),
   };
 }
@@ -1293,7 +1210,7 @@ async function saveToDrive() {
   const data = getData();
   const title = data.title || '無標題鼓譜';
   const filename = title + '.drum.json';
-  const totalBars = sections.reduce((a, s) => a + s.measures.length, 0);
+  const totalBars = measures.length;
   const appProps = {
     bpm: String(bpm),
     timeSig,
