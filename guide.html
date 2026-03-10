@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRUM 線上鼓譜編輯器 — 使用教學</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafaf8;
+  --surface: #fff;
+  --border: #e0e0d8;
+  --text: #1a1a18;
+  --muted: #888;
+  --accent: #1a1a18;
+  --tag-bg: #f0f0e8;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Noto Sans TC', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--text);
+  color: #fff;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+}
+.header-sub {
+  font-size: 0.72rem;
+  color: #aaa;
+  letter-spacing: 0.05em;
+}
+.header-right {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: #aaa;
+  font-family: var(--mono);
+}
+
+/* ── LAYOUT ── */
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  margin-bottom: 56px;
+}
+.hero-title {
+  font-family: var(--mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.hero-sub {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ── TOC ── */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 48px;
+}
+.toc-title {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.toc-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 32px;
+}
+.toc-list a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toc-list a:hover { text-decoration: underline; }
+.toc-num {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  min-width: 18px;
+}
+
+/* ── SECTIONS ── */
+.section {
+  margin-bottom: 52px;
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--text);
+}
+p {
+  color: #333;
+  margin-bottom: 12px;
+}
+
+/* ── STEPS ── */
+.steps {
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.step-num {
+  counter-increment: step;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--text);
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-content { flex: 1; font-size: 0.85rem; line-height: 1.6; }
+.step-content strong { font-weight: 700; }
+
+/* ── KEY GRID ── */
+.key-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+.key-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.key-badge {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── INST TABLE ── */
+.inst-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
+.inst-table th {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--text);
+  background: var(--tag-bg);
+}
+.inst-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.inst-table tr:last-child td { border-bottom: none; }
+.abbr {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+/* ── SYM TABLE ── */
+.sym-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+.sym-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+.sym-char {
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* ── TIP BOX ── */
+.tip {
+  background: #fffff0;
+  border: 1px solid #e0e0a0;
+  border-left: 3px solid #c8c840;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  color: #555;
+  margin-top: 12px;
+}
+.tip strong { color: var(--text); }
+
+/* ── NOTE BOX ── */
+.note {
+  background: #f0f8ff;
+  border: 1px solid #c0d8f0;
+  border-left: 3px solid #4090c8;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  color: #444;
+  margin-top: 12px;
+}
+
+/* ── DIVIDER ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 32px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+}
+
+@media (max-width: 540px) {
+  .toc-list { grid-template-columns: 1fr; }
+  .key-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">DRUM</div>
+    <div class="header-sub">線上鼓譜編輯器</div>
+  </div>
+  <div class="header-right">使用教學 / User Guide</div>
+</header>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="hero-title">歡迎使用 DRUM 鼓譜編輯器</div>
+    <div class="hero-sub">在瀏覽器裡直接寫譜、播放、儲存到 Google 雲端</div>
+  </div>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-title">目錄</div>
+    <ul class="toc-list">
+      <li><a href="#s1"><span class="toc-num">01</span>第一次登入</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span>新增一張譜</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span>輸入音符</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span>樂器對照表</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span>符號說明</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span>播放與節拍</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span>新增與刪除小節</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span>儲存與管理</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span>快捷鍵</a></li>
+    </ul>
+  </nav>
+
+  <!-- 01 -->
+  <div class="section" id="s1">
+    <div class="section-num">01</div>
+    <div class="section-title">第一次登入</div>
+    <p>使用 Google 帳號登入，譜會自動儲存到你的 Google Drive，任何裝置都能開啟。</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content">開啟網站後，點右上角 <strong>「G 登入 Google」</strong></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content">選擇你的 Google 帳號，允許存取 Drive</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content">登入後畫面自動切換到譜庫，右上角會顯示你的名字</div></div>
+    </div>
+    <div class="tip"><strong>提示：</strong>登入狀態在同一個瀏覽器裡會維持至少 3 小時，不需要每次重新登入。</div>
+  </div>
+
+  <!-- 02 -->
+  <div class="section" id="s2">
+    <div class="section-num">02</div>
+    <div class="section-title">新增一張譜</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content">在譜庫頁面點右下角的 <strong>＋ 按鈕</strong></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content">進入編輯器，左上角輸入<strong>譜名</strong>（例如：某某某 - Verse）</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content">設定 <strong>BPM（速度）</strong> 和 <strong>拍號</strong>，預設是 120 BPM、4/4 拍</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content">預設會有 <strong>8 個小節</strong>，可以隨時新增或刪除</div></div>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="section" id="s3">
+    <div class="section-num">03</div>
+    <div class="section-title">輸入音符</div>
+    <p>在五線譜上直接點擊來輸入音符，就像在格子裡填音符一樣直覺。</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content">上方工具列選擇<strong>符號</strong>（x、o、X、O、g、f、r）</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content">選擇<strong>時值</strong>（全音符、二分、四分、八分、十六分）</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content">點擊五線譜上對應<strong>樂器行</strong>的格子，音符就會出現</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content">點擊同一格<strong>再點一次</strong>可以刪除該音符</div></div>
+    </div>
+    <div class="tip"><strong>橡皮擦模式：</strong>按工具列的橡皮擦圖示（或按鍵盤 <kbd>E</kbd>），進入橡皮擦模式，點哪裡就刪哪裡。</div>
+  </div>
+
+  <!-- 04 -->
+  <div class="section" id="s4">
+    <div class="section-num">04</div>
+    <div class="section-title">樂器對照表</div>
+    <p>五線譜從上到下共 9 軌，對應如下：</p>
+    <table class="inst-table">
+      <thead>
+        <tr><th>縮寫</th><th>英文名</th><th>中文</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="abbr">CR</span></td><td>Crash Cymbal</td><td>銅鈸（強奏）</td></tr>
+        <tr><td><span class="abbr">RC</span></td><td>Ride Cymbal</td><td>叮叮鈸</td></tr>
+        <tr><td><span class="abbr">HH</span></td><td>Hi-Hat</td><td>腳踏鈸</td></tr>
+        <tr><td><span class="abbr">S</span></td><td>Snare</td><td>小鼓</td></tr>
+        <tr><td><span class="abbr">T1</span></td><td>Hi Tom</td><td>高音桶鼓</td></tr>
+        <tr><td><span class="abbr">T2</span></td><td>Mid Tom</td><td>中音桶鼓</td></tr>
+        <tr><td><span class="abbr">FT</span></td><td>Floor Tom</td><td>落地桶鼓</td></tr>
+        <tr><td><span class="abbr">HF</span></td><td>Hi-Hat Foot</td><td>腳踏鈸（腳踩）</td></tr>
+        <tr><td><span class="abbr">B</span></td><td>Bass Drum</td><td>大鼓</td></tr>
+      </tbody>
+    </table>
+    <div class="tip"><strong>靜音功能：</strong>點左側的樂器縮寫可以靜音單一樂器，播放時就不會聽到那軌的聲音。</div>
+  </div>
+
+  <!-- 05 -->
+  <div class="section" id="s5">
+    <div class="section-num">05</div>
+    <div class="section-title">符號說明</div>
+    <div class="sym-grid">
+      <div class="sym-item"><span class="sym-char">x</span>一般擊打</div>
+      <div class="sym-item"><span class="sym-char">X</span>重音擊打</div>
+      <div class="sym-item"><span class="sym-char">o</span>一般打擊</div>
+      <div class="sym-item"><span class="sym-char">O</span>強力打擊</div>
+      <div class="sym-item"><span class="sym-char">g</span>鬼音 Ghost</div>
+      <div class="sym-item"><span class="sym-char">f</span>裝飾音 Flam</div>
+      <div class="sym-item"><span class="sym-char">r</span>滾奏 Roll</div>
+    </div>
+  </div>
+
+  <!-- 06 -->
+  <div class="section" id="s6">
+    <div class="section-num">06</div>
+    <div class="section-title">播放與節拍</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content">點 <strong>▶ 播放</strong> 按鈕（或按空白鍵）開始播放</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content">拖動 <strong>BPM 滑桿</strong> 調整速度，範圍 40–300</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content">點 <strong>🔁</strong> 切換是否循環播放</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content">點 <strong>■ 停止</strong> 回到第一拍</div></div>
+    </div>
+    <div class="note">播放使用瀏覽器合成音效，不需要安裝任何插件。聲音為模擬效果，與真實錄音有差異，僅供節奏對位參考。</div>
+  </div>
+
+  <!-- 07 -->
+  <div class="section" id="s7">
+    <div class="section-num">07</div>
+    <div class="section-title">新增與刪除小節</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content">點工具列的 <strong>「小節 ＋」</strong> 按鈕，在最後新增一個空白小節</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content">每個小節左上角有小節編號（小節 1、小節 2…）</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content">把滑鼠移到小節右上角，出現 <strong>✕</strong> 按鈕，點擊即可刪除該小節</div></div>
+    </div>
+    <div class="tip"><strong>注意：</strong>至少保留一個小節，刪到只剩一個時 ✕ 按鈕會消失。</div>
+  </div>
+
+  <!-- 08 -->
+  <div class="section" id="s8">
+    <div class="section-num">08</div>
+    <div class="section-title">儲存與管理</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content">點右上角 <strong>「☁ 儲存」</strong> 存到 Google Drive，會自動建立 <strong>DrumTab</strong> 資料夾</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content">每隔 60 秒也會<strong>自動儲存</strong>一次</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content">點 <strong>← 返回</strong> 回到譜庫，可看到所有儲存的譜</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content">在譜庫可以搜尋、依時間或名稱排序、用標籤篩選</div></div>
+    </div>
+    <div class="tip"><strong>標籤：</strong>在編輯器右上角點「🏷 標籤」可以幫這張譜加標籤，方便在譜庫快速篩選。</div>
+  </div>
+
+  <!-- 09 -->
+  <div class="section" id="s9">
+    <div class="section-num">09</div>
+    <div class="section-title">快捷鍵</div>
+    <div class="key-grid">
+      <div class="key-item"><span class="key-badge">Space</span>播放 / 暫停</div>
+      <div class="key-item"><span class="key-badge">Esc</span>停止</div>
+      <div class="key-item"><span class="key-badge">E</span>橡皮擦模式</div>
+      <div class="key-item"><span class="key-badge">1</span>全音符</div>
+      <div class="key-item"><span class="key-badge">2</span>二分音符</div>
+      <div class="key-item"><span class="key-badge">4</span>四分音符</div>
+      <div class="key-item"><span class="key-badge">8</span>八分音符</div>
+      <div class="key-item"><span class="key-badge">6</span>十六分音符</div>
+      <div class="key-item"><span class="key-badge">x</span>符號 x</div>
+      <div class="key-item"><span class="key-badge">o</span>符號 o</div>
+      <div class="key-item"><span class="key-badge">r</span>符號 r</div>
+      <div class="key-item"><span class="key-badge">⌘Z</span>復原 Undo</div>
+      <div class="key-item"><span class="key-badge">⌘⇧Z</span>取消復原 Redo</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  DRUM 線上鼓譜編輯器 &nbsp;·&nbsp; murmurdyj.github.io/drumtab
+</footer>
+
+</body>
+</html>

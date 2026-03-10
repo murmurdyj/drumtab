@@ -198,6 +198,7 @@ header {
   <div class="logo">DRUM</div>
   <span style="font-size:0.72rem;color:#aaa;font-family:'JetBrains Mono',monospace;">鼓譜庫</span>
   <div class="header-right" id="headerRight">
+    <a href="guide.html" target="_blank" style="font-size:0.76rem;color:#888;text-decoration:none;font-family:'Noto Sans TC',sans-serif;padding:4px 8px;border-radius:4px;border:1px solid #e0e0d8;" onmouseover="this.style.background='#f0f0e8'" onmouseout="this.style.background='transparent'">使用教學</a>
     <button class="btn outline google-btn" onclick="signIn()" id="signInBtn">
       <span class="google-icon">G</span> 登入 Google
     </button>
@@ -277,8 +278,8 @@ header {
 // ══════════════════════════════════════════════
 // CONFIG — 填入你的 Google API 資訊
 // ══════════════════════════════════════════════
-const CLIENT_ID = '499972066406-386bpsg83vmjel4v36toofnppbdkgqbg.apps.googleusercontent.com';   // ← 替換這裡
-const API_KEY   = 'AIzaSyAW5tLKMbbqtWhFFZS2VgCUY5W9NjT6LmM';     // ← 替換這裡
+const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';   // ← 替換這裡
+const API_KEY   = 'YOUR_GOOGLE_API_KEY';     // ← 替換這裡
 const FOLDER_NAME = 'DrumTab';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
