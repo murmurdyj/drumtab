@@ -110,10 +110,12 @@ body {
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 0;
-  padding: 6px 12px 6px 0;
+  gap: 2px;
+  padding: 4px 8px 4px 0;
   border-right: 1px solid var(--border);
-  margin-right: 12px;
+  margin-right: 8px;
+  flex-wrap: wrap;
+  max-width: 320px;
 }
 .toolbar-group:last-child { border-right: none; margin-right: 0; }
 
@@ -367,28 +369,40 @@ svg.staff {
   <!-- Note value -->
   <div class="toolbar-group">
     <span class="toolbar-label">時值</span>
-    <div class="tool-btn active" id="dur-1" title="全音符" onclick="setDur(1,this)">𝅝</div>
-    <div class="tool-btn" id="dur-2" title="二分音符" onclick="setDur(2,this)">𝅗</div>
-    <div class="tool-btn" id="dur-4" title="四分音符" onclick="setDur(4,this)">♩</div>
-    <div class="tool-btn" id="dur-8" title="八分音符" onclick="setDur(8,this)">♪</div>
-    <div class="tool-btn" id="dur-16" title="十六分音符" onclick="setDur(16,this)">𝅘𝅥𝅯</div>
+    <div class="tool-btn" id="dur-1"   title="全音符 (4拍)"          onclick="setDur('1',this)">𝅝</div>
+    <div class="tool-btn" id="dur-1d"  title="附點二分 (3拍)"        onclick="setDur('2d',this)">𝅗.</div>
+    <div class="tool-btn" id="dur-2"   title="二分音符 (2拍)"        onclick="setDur('2',this)">𝅗</div>
+    <div class="tool-btn active" id="dur-4"   title="四分音符 (1拍)" onclick="setDur('4',this)">♩</div>
+    <div class="tool-btn" id="dur-4d"  title="附點四分 (1.5拍)"      onclick="setDur('4d',this)">♩.</div>
+    <div class="tool-btn" id="dur-8"   title="八分音符 (0.5拍)"      onclick="setDur('8',this)">♪</div>
+    <div class="tool-btn" id="dur-8d"  title="附點八分 (0.75拍)"     onclick="setDur('8d',this)">♪.</div>
+    <div class="tool-btn" id="dur-8t"  title="八分三連音 (1拍3個)"   onclick="setDur('8t',this)">³♪</div>
+    <div class="tool-btn" id="dur-16"  title="十六分音符 (0.25拍)"   onclick="setDur('16',this)">𝅘𝅥𝅯</div>
+    <div class="tool-btn" id="dur-16d" title="附點十六分"            onclick="setDur('16d',this)">𝅘𝅥𝅯.</div>
+    <div class="tool-btn" id="dur-16t" title="十六分三連音/六連音"   onclick="setDur('16t',this)">⁶𝅘𝅥𝅯</div>
   </div>
   <!-- Symbol type -->
   <div class="toolbar-group">
     <span class="toolbar-label">符號</span>
-    <div class="tool-btn active" id="sym-x" title="叉號（鈸/HH）" onclick="setSym('x',this)">✕</div>
-    <div class="tool-btn" id="sym-o" title="空心（鼓擊）" onclick="setSym('o',this)">○</div>
-    <div class="tool-btn" id="sym-X" title="重音叉號" onclick="setSym('X',this)">✕̈</div>
-    <div class="tool-btn" id="sym-O" title="重音鼓擊" onclick="setSym('O',this)">●</div>
-    <div class="tool-btn" id="sym-g" title="Ghost Note" onclick="setSym('g',this)">()</div>
-    <div class="tool-btn" id="sym-f" title="Flam" onclick="setSym('f',this)">𝆐</div>
-    <div class="tool-btn" id="sym-r" title="休止符" onclick="setSym('r',this)">𝄽</div>
+    <div class="tool-btn active" id="sym-x"    title="叉號 x（鈸/HH）"     onclick="setSym('x',this)">✕</div>
+    <div class="tool-btn" id="sym-o"    title="空心 o（鼓擊）"              onclick="setSym('o',this)">○</div>
+    <div class="tool-btn" id="sym-X"    title="重音叉 X（Accent鈸）"        onclick="setSym('X',this)">✕̈</div>
+    <div class="tool-btn" id="sym-O"    title="重音鼓 O（Accent鼓）"        onclick="setSym('O',this)">●</div>
+    <div class="tool-btn" id="sym-cs"   title="邊擊 Cross Stick ⊕"         onclick="setSym('cs',this)">⊕</div>
+    <div class="tool-btn" id="sym-rs"   title="鈸邊擊 Rimshot"              onclick="setSym('rs',this)">⊗</div>
+    <div class="tool-btn" id="sym-xo"   title="開鈸 Open HH"               onclick="setSym('xo',this)">✕°</div>
+    <div class="tool-btn" id="sym-xc"   title="閉鈸 Closed HH"             onclick="setSym('xc',this)">✕+</div>
+    <div class="tool-btn" id="sym-g"    title="鬼音 Ghost Note"             onclick="setSym('g',this)">()</div>
+    <div class="tool-btn" id="sym-f"    title="Flam（雙重奏）"              onclick="setSym('f',this)">𝆐</div>
+    <div class="tool-btn" id="sym-drag" title="Drag（拖音）"                onclick="setSym('drag',this)">//</div>
+    <div class="tool-btn" id="sym-r"    title="輪鼓 Roll"                   onclick="setSym('r',this)">≋</div>
+    <div class="tool-btn" id="sym-rest" title="休止符"                      onclick="setSym('rest',this)">𝄽</div>
   </div>
   <!-- Erase + Undo -->
   <div class="toolbar-group">
-    <div class="tool-btn erase-btn" id="sym-erase" title="橡皮擦：點格子清除音符（快捷鍵 E）" onclick="setSym('erase',this)">橡皮擦</div>
-    <div class="tool-btn undo-btn" id="undoBtn" title="回上一步（⌘Z）" onclick="doUndo()">↩ Undo</div>
-    <div class="tool-btn undo-btn" id="redoBtn" title="重做（⌘Shift+Z）" onclick="doRedo()">↪ Redo</div>
+    <div class="tool-btn erase-btn" id="sym-erase" title="橡皮擦 (E) — 再按一次取消" onclick="toggleErase()">橡皮擦</div>
+    <div class="tool-btn undo-btn" title="Undo (⌘Z)" onclick="doUndo()">↩</div>
+    <div class="tool-btn undo-btn" title="Redo (⌘⇧Z)" onclick="doRedo()">↪</div>
   </div>
   <!-- Measure -->
   <div class="toolbar-group">
@@ -396,25 +410,41 @@ svg.staff {
     <div class="tool-btn" title="新增小節" onclick="addMeasure()">＋</div>
     <div class="tool-btn" title="刪除最後小節" onclick="removeMeasure()">－</div>
   </div>
-  <!-- Playback -->
+  <!-- Per-measure sig override -->
+  <div class="toolbar-group">
+    <span class="toolbar-label">單節拍號</span>
+    <span style="font-size:0.72rem;color:#888;">第</span>
+    <input type="number" id="measSigIdx" min="1" value="1"
+      style="width:38px;font-size:0.76rem;padding:2px 4px;border:1px solid #c8c8c0;border-radius:3px;text-align:center;"
+      onkeydown="if(event.key==='Enter')applyMeasureSigInput()">
+    <span style="font-size:0.72rem;color:#888;">節改</span>
+    <input type="text" id="measSigVal" placeholder="如 3/4" value=""
+      style="width:48px;font-size:0.76rem;padding:2px 4px;border:1px solid #c8c8c0;border-radius:3px;text-align:center;"
+      onkeydown="if(event.key==='Enter')applyMeasureSigInput()">
+    <button class="btn" style="padding:2px 8px;font-size:0.72rem;" onclick="applyMeasureSigInput()">套用</button>
+  </div>
+  <!-- BPM -->
   <div class="toolbar-group">
     <span class="toolbar-label">BPM</span>
     <input type="range" id="bpmSlider" min="40" max="240" value="120" oninput="updateBpm(this.value)">
     <span class="bpm-num" id="bpmNum">120</span>
   </div>
+  <!-- Global time sig -->
   <div class="toolbar-group">
     <span class="toolbar-label">拍號</span>
-    <select class="sig-select" id="sigSelect" onchange="updateSig()">
+    <select class="sig-select" id="sigSelect">
       <option>4/4</option><option>2/4</option><option>3/4</option>
       <option>6/8</option><option>7/8</option><option>7/4</option>
       <option>5/4</option><option>5/8</option><option>9/8</option>
-      <option>12/8</option><option>3/7</option>
+      <option>12/8</option><option>3/8</option><option>5/16</option>
       <option value="custom">自訂…</option>
     </select>
     <input type="text" id="sigCustom" placeholder="如 11/8"
       style="display:none;width:54px;font-size:0.76rem;padding:3px 5px;border:1px solid #c8c8c0;border-radius:3px;font-family:'Noto Sans TC',sans-serif;"
-      onkeydown="if(event.key==='Enter')applyCustomSig()">
+      onkeydown="if(event.key==='Enter')confirmGlobalSig()">
+    <button class="btn" style="padding:3px 8px;font-size:0.72rem;" onclick="confirmGlobalSig()">確定</button>
   </div>
+  <!-- Playback -->
   <div class="toolbar-group">
     <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ 播放</button>
     <div class="tool-btn" title="停止" onclick="stopPlay()" style="margin-left:4px">■</div>
@@ -493,7 +523,7 @@ const STAFF_LINES = [2, 3, 4, 5, 6]; // lineIdx values that get a real line
 // ═══════════════════════════════════
 let measures = [];      // [ [N_INST][cells] ]  — flat, no sections
 let lyrics = [];        // string[] one per measure
-let currentDur = 4;
+let currentDur = '4';   // durCode: '1','2','4','8','16','4d','8d','8t','16d','16t','2d'
 let currentSym = 'x';
 let bpm = 120;
 let timeSig = '4/4';
@@ -512,14 +542,82 @@ const MAX_HISTORY = 60;
 let undoStack = [];
 let redoStack = [];
 
-// Cells per beat based on time signature
-function cellsPerMeasure() {
-  const [n, d] = timeSig.split('/').map(Number);
-  // Always use 16th-note grid; cells = beats * (16/denom)
-  const denom = isNaN(d) ? 4 : d;
-  const num = isNaN(n) ? 4 : n;
-  return num * Math.max(1, Math.round(16 / denom));
+// ── Duration code helpers ──
+// durCode: '1','2','4','8','16' straight
+//          '4d','8d','8d','16d' dotted (1.5x)
+//          '8t' triplet (3/beat), '16t' sextuplet (6/beat)
+
+// Returns subdivisions per beat for a given durCode
+// We always use 12 as LCM for triplet grid, 16 for binary, 48 for combined
+// To keep it simple: binary grid = 16 cells/beat, triplet grid = 12 cells/beat
+function gridTypeForDur(dur) {
+  if (dur === '8t' || dur === '16t') return 'triplet';
+  return 'binary';
 }
+
+// Cells per beat in the grid
+function cellsPerBeatForGrid(gridType) {
+  return gridType === 'triplet' ? 12 : 16;
+}
+
+// Duration in "sixteenth-note units" (regardless of grid)
+// Whole=16, Half=8, Quarter=4, 8th=2, 16th=1 (relative to 4/4 denom=4)
+function durInSixteenths(dur, sig) {
+  const denom = parseInt(((sig||timeSig||'4/4').split('/')[1])) || 4;
+  // one beat = (4/denom) sixteenth notes
+  const beatIn16 = 4 / denom;
+  const map = {
+    '1':  16 / denom * 4,   // whole note = 4 beats
+    '2':  8  / denom * 4,
+    '2d': 12 / denom * 4,   // dotted half = 3 beats
+    '4':  beatIn16,          // quarter = 1 beat
+    '4d': beatIn16 * 1.5,
+    '8':  beatIn16 * 0.5,
+    '8d': beatIn16 * 0.75,
+    '8t': beatIn16 / 3,     // triplet 8th = 1/3 beat
+    '16': beatIn16 * 0.25,
+    '16d':beatIn16 * 0.375,
+    '16t':beatIn16 / 6,
+  };
+  return map[dur] != null ? map[dur] : beatIn16;
+}
+
+// How many GRID CELLS does a note of `noteDur` occupy,
+// given the measure's grid unit is `gridDur`?
+function cellSpanForDur(noteDur, sig, gridDur) {
+  gridDur = gridDur || currentDur;
+  const noteVal = durInSixteenths(noteDur, sig);
+  const gridVal = durInSixteenths(gridDur, sig);
+  return Math.max(1, Math.round(noteVal / gridVal));
+}
+
+// Finest duration among all notes in a measure (auto grid)
+const DUR_ORDER = ['16t','16d','16','8t','8d','8','4d','4','2d','2','1'];
+function autoGridDur(meas) {
+  let finest = '4'; // default quarter grid
+  const rows = meas.rows || meas;
+  rows.forEach(row => row.forEach(cell => {
+    if (!cell || cell.sym === 'rest') return;
+    const d = String(cell.dur || '4');
+    const di = DUR_ORDER.indexOf(d);
+    const fi = DUR_ORDER.indexOf(finest);
+    if (di !== -1 && (fi === -1 || di < fi)) finest = d;
+  }));
+  return finest;
+}
+
+// Total cells in a measure
+function cellsForMeasure(sig, dur) {
+  sig = sig || timeSig;
+  dur = dur || currentDur;
+  const [n, d] = (sig || '4/4').split('/').map(Number);
+  const beats = isNaN(n) ? 4 : n;
+  const grid = gridTypeForDur(dur);
+  const cpb = cellsPerBeatForGrid(grid);
+  return beats * cpb;
+}
+
+function cellsPerMeasure() { return cellsForMeasure(timeSig, currentDur); }
 
 // ═══════════════════════════════════
 // INIT
@@ -535,14 +633,21 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+function makeMeasure(durUnit, sig) {
+  // New empty measures default to quarter grid; auto-expands when notes are added
+  durUnit = '4';
+  sig = sig || timeSig;
+  const cpm = cellsForMeasure(sig, durUnit);
+  const rows = [];
+  for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
+  return { rows, durUnit, sig };
+}
+
 function initDefault() {
   measures = [];
   lyrics = [];
-  const cpm = cellsPerMeasure();
   for (let m = 0; m < 8; m++) {
-    const rows = [];
-    for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
-    measures.push(rows);
+    measures.push(makeMeasure());
     lyrics.push('');
   }
 }
@@ -551,15 +656,19 @@ function applyData(d) {
   if (d.title) document.getElementById('songTitle').value = d.title;
   // Support both new flat format and old sections format
   if (d.measures) {
-    measures = d.measures;
+    measures = d.measures.map(m => {
+      if (Array.isArray(m)) return { rows: m, durUnit: '4', sig: d.timeSig || '4/4' };
+      if (m.rows) return { ...m, durUnit: String(m.durUnit || '4') };
+      return { rows: m, durUnit: '4', sig: d.timeSig || '4/4' };
+    });
     lyrics = d.lyrics || new Array(measures.length).fill('');
   } else if (d.sections && d.sections.length > 0) {
-    // migrate old format: flatten all sections
     measures = [];
     lyrics = [];
     d.sections.forEach(sec => {
       sec.measures.forEach((m, i) => {
-        measures.push(m);
+        const rows = Array.isArray(m) ? m : (m.rows || m);
+        measures.push({ rows, durUnit: '4', sig: d.timeSig || '4/4' });
         lyrics.push(sec.lyrics ? (sec.lyrics[i] || '') : '');
       });
     });
@@ -593,7 +702,7 @@ function renderStaff() {
   // Group measures into rows of BARS_PER_ROW
   for (let rowStart = 0; rowStart < measures.length; rowStart += BARS_PER_ROW) {
     const rowMeasures = measures.slice(rowStart, rowStart + BARS_PER_ROW);
-    const totalCells = rowMeasures.reduce((a, m) => a + m[0].length, 0);
+    const totalCells = rowMeasures.reduce((a, m) => a + (m.rows || m)[0].length, 0);
     const svgW = LABEL_W + totalCells * CELL_W + 20;
 
     const div = document.createElement('div');
@@ -657,61 +766,108 @@ function renderStaff() {
     let xOffset = 22;
     rowMeasures.forEach((meas, mIdx) => {
       const globalMeasIdx = rowStart + mIdx;
-      const nCells = meas[0].length;
+      const rows = meas.rows || meas;  // support both formats
+      // Auto grid: finest note in this measure determines grid density
+      const measDurUnit = autoGridDur(meas);
+      const measSig = meas.sig || timeSig;
+      const nCells = rows[0].length;
       const measW = nCells * CELL_W;
 
-      // Measure number + delete button
+      // Beat grid background colours
+      const [sigN, sigDd] = (measSig || '4/4').split('/').map(Number);
+      const beats = sigN || 4;
+      const cellsPerBeat = nCells / beats;
+      for (let b = 0; b < beats; b++) {
+        const bx = xOffset + b * cellsPerBeat * CELL_W;
+        const beatFill = b === 0 ? 'rgba(0,0,0,0.03)' : (b % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent');
+        if (beatFill !== 'transparent') {
+          rect(svg, bx, STAFF_PAD_TOP, cellsPerBeat * CELL_W, STAFF_H - STAFF_PAD_TOP - STAFF_PAD_BOT, beatFill, 'none');
+        }
+        // Beat line
+        line(svg, bx, STAFF_PAD_TOP, bx, STAFF_H - STAFF_PAD_BOT, '#ddd', 0.5);
+        // Sub-beat lines (between 8th notes if 16th grid)
+        if (cellsPerBeat >= 4) {
+          for (let sub = 1; sub < cellsPerBeat; sub++) {
+            if (sub % 2 !== 0) {
+              const sx = bx + sub * CELL_W;
+              line(svg, sx, STAFF_PAD_TOP + 2, sx, STAFF_H - STAFF_PAD_BOT - 2, '#ebebeb', 0.4);
+            }
+          }
+        }
+      }
+
       // Measure number label
       const mnBg = document.createElementNS(SVG_NS, 'rect');
-      mnBg.setAttribute('x', xOffset + 1);
-      mnBg.setAttribute('y', 1);
-      mnBg.setAttribute('width', 22);
-      mnBg.setAttribute('height', 13);
-      mnBg.setAttribute('rx', 2);
-      mnBg.setAttribute('fill', '#f0f0e8');
+      mnBg.setAttribute('x', xOffset + 1); mnBg.setAttribute('y', 1);
+      mnBg.setAttribute('width', 26); mnBg.setAttribute('height', 13);
+      mnBg.setAttribute('rx', 2); mnBg.setAttribute('fill', '#f0f0e8');
       svg.appendChild(mnBg);
       const mnTxt = document.createElementNS(SVG_NS, 'text');
-      mnTxt.setAttribute('x', xOffset + 4);
-      mnTxt.setAttribute('y', 11);
-      mnTxt.setAttribute('fill', '#888');
-      mnTxt.setAttribute('font-size', '8px');
+      mnTxt.setAttribute('x', xOffset + 4); mnTxt.setAttribute('y', 11);
+      mnTxt.setAttribute('fill', '#888'); mnTxt.setAttribute('font-size', '8px');
       mnTxt.setAttribute('font-family', 'JetBrains Mono, monospace');
       mnTxt.textContent = `小節 ${globalMeasIdx + 1}`;
       svg.appendChild(mnTxt);
-      if (measures.length > 1) {
-        const delRect = document.createElementNS(SVG_NS, 'text');
-        delRect.setAttribute('x', xOffset + measW - 10);
-        delRect.setAttribute('y', STAFF_PAD_TOP - 1);
-        delRect.setAttribute('font-size', '7px');
-        delRect.setAttribute('fill', '#ccc');
-        delRect.setAttribute('cursor', 'pointer');
-        delRect.textContent = '✕';
-        delRect.addEventListener('mouseenter', function(){ this.setAttribute('fill','#c84040'); });
-        delRect.addEventListener('mouseleave', function(){ this.setAttribute('fill','#ccc'); });
-        delRect.addEventListener('click', function(e){
-          e.stopPropagation();
-          deleteMeasureAt(globalMeasIdx);
-        });
-        svg.appendChild(delRect);
-      }
 
-      // Beat subdivisions (subtle)
-      const beatsPerMeas = parseInt(timeSig.split('/')[0]) || 4;
-      const cellsPerBeat = nCells / beatsPerMeas;
-      for (let b = 0; b < beatsPerMeas; b++) {
-        const bx = xOffset + b * cellsPerBeat * CELL_W;
-        line(svg, bx, STAFF_PAD_TOP, bx, STAFF_H - STAFF_PAD_BOT, '#ddd', 0.5);
+      // DurUnit + sig badges (clickable)
+      const durSyms = {'1':'𝅝','2':'𝅗','4':'♩','8':'♪','16':'𝅘𝅥𝅯',
+        '2d':'𝅗.','4d':'♩.','8d':'♪.','16d':'𝅘𝅥𝅯.','8t':'³♪','16t':'⁶𝅘𝅥𝅯'};
+      // Sig badge (left of dur badge)
+      const sigBadge = document.createElementNS(SVG_NS, 'text');
+      sigBadge.setAttribute('x', xOffset + measW - 32);
+      sigBadge.setAttribute('y', 11);
+      sigBadge.setAttribute('fill', measSig !== timeSig ? '#c84040' : '#bbb');
+      sigBadge.setAttribute('font-size', '7px');
+      sigBadge.setAttribute('font-family', 'JetBrains Mono, monospace');
+      sigBadge.setAttribute('cursor', 'pointer');
+      sigBadge.setAttribute('title', '點擊修改此小節拍號');
+      sigBadge.textContent = measSig;
+      sigBadge.addEventListener('click', (e) => { e.stopPropagation(); promptMeasureSig(globalMeasIdx); });
+      sigBadge.addEventListener('mouseenter', function(){ this.setAttribute('fill','#333'); });
+      sigBadge.addEventListener('mouseleave', function(){ this.setAttribute('fill', measSig !== timeSig ? '#c84040' : '#bbb'); });
+      svg.appendChild(sigBadge);
+      // Dur badge
+      const durBadge = document.createElementNS(SVG_NS, 'text');
+      durBadge.setAttribute('x', xOffset + measW - 14);
+      durBadge.setAttribute('y', 11);
+      durBadge.setAttribute('fill', '#aaa');
+      durBadge.setAttribute('font-size', '9px');
+      durBadge.setAttribute('cursor', 'pointer');
+      durBadge.setAttribute('title', '點擊切換此小節格子細度');
+      durBadge.textContent = durSyms[measDurUnit] || '♩';
+      // dur badge is display-only (auto grid, no manual click)
+      durBadge.style.cursor = 'default';
+      svg.appendChild(durBadge);
+
+      // Delete button
+      if (measures.length > 1) {
+        const delBtn = document.createElementNS(SVG_NS, 'text');
+        delBtn.setAttribute('x', xOffset + measW - 7);
+        delBtn.setAttribute('y', STAFF_PAD_TOP - 2);
+        delBtn.setAttribute('font-size', '7px');
+        delBtn.setAttribute('fill', '#ccc');
+        delBtn.setAttribute('cursor', 'pointer');
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('mouseenter', function(){ this.setAttribute('fill','#c84040'); });
+        delBtn.addEventListener('mouseleave', function(){ this.setAttribute('fill','#ccc'); });
+        delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteMeasureAt(globalMeasIdx); });
+        svg.appendChild(delBtn);
       }
 
       // Cells & notes
+      // Each cell = one grid unit (measDurUnit).
+      // A note occupies cellSpanForDur(cell.dur) cells visually.
+      // We draw one clickable rect per grid cell, but draw the note symbol
+      // centred over its occupied span (only on the first cell of a span).
       INSTRUMENTS.forEach((inst, iIdx) => {
         const cy = STAFF_PAD_TOP + iIdx * ROW_H + ROW_H / 2;
-        meas[iIdx].forEach((cell, cIdx) => {
-          const cx = xOffset + cIdx * CELL_W + CELL_W / 2;
+        const measSig2 = meas.sig || timeSig;
 
-          // Hover zone (transparent clickable rect)
+        rows[iIdx].forEach((cell, cIdx) => {
+          // Click target: always one grid cell wide
+          const rx = xOffset + cIdx * CELL_W;
           const r = document.createElementNS(SVG_NS, 'rect');
-          r.setAttribute('x', xOffset + cIdx * CELL_W);
+          r.setAttribute('x', rx);
           r.setAttribute('y', STAFF_PAD_TOP + iIdx * ROW_H);
           r.setAttribute('width', CELL_W);
           r.setAttribute('height', ROW_H);
@@ -719,15 +875,23 @@ function renderStaff() {
           r.style.cursor = 'pointer';
           r.addEventListener('click', () => handleCellClick(globalMeasIdx, iIdx, cIdx));
           r.addEventListener('mouseenter', function() {
-            if (currentSym !== 'erase') this.setAttribute('fill', 'rgba(0,0,0,0.04)');
+            if (currentSym !== 'erase') this.setAttribute('fill', 'rgba(0,0,0,0.05)');
+            else this.setAttribute('fill', 'rgba(200,0,0,0.06)');
           });
-          r.addEventListener('mouseleave', function() {
-            this.setAttribute('fill', 'transparent');
-          });
+          r.addEventListener('mouseleave', function() { this.setAttribute('fill', 'transparent'); });
           svg.appendChild(r);
 
-          // Draw note symbol
-          if (cell) drawNoteSymbol(svg, cx, cy, cell);
+          if (cell) {
+            // How many grid cells does this note occupy?
+            const span = Math.max(1, cellSpanForDur(cell.dur || measDurUnit, measSig2, measDurUnit));
+            // Centre the symbol over its span
+            const cx = xOffset + cIdx * CELL_W + (span * CELL_W) / 2;
+            if (cell.sym === 'rest') {
+              drawRestSymbol(svg, cx, cy, cell.dur || measDurUnit);
+            } else {
+              drawNoteSymbol(svg, cx, cy, cell);
+            }
+          }
         });
       });
 
@@ -750,7 +914,8 @@ function renderStaff() {
     lyricsRow.style.cssText = `display:flex;margin-left:${LABEL_W}px;margin-top:0;margin-bottom:0;`;
     rowMeasures.forEach((meas, mIdx) => {
       const globalMeasIdx = rowStart + mIdx;
-      const nCells = meas[0].length;
+      const rows = meas.rows || meas;
+      const nCells = rows[0].length;
       const measW = nCells * CELL_W;
       while (lyrics.length < measures.length) lyrics.push('');
       const val = lyrics[globalMeasIdx] || '';
@@ -774,69 +939,157 @@ function renderStaff() {
 }
 
 function drawNoteSymbol(svg, cx, cy, cell) {
-  const { sym, dur } = cell;
-  const stemUp = cy > STAFF_H / 2;
-  const stemY = stemUp ? cy - ROW_H * 2.2 : cy + ROW_H * 2.2;
+  const { sym } = cell;
+  const dur      = String(cell.dur || '4');
+  const baseDur  = dur.replace('d','').replace('t','');
+  const isDotted  = dur.includes('d');
+  const isTriplet = dur.includes('t');
+  const isWhole   = baseDur === '1';
+  const isHalf    = baseDur === '2';
+  const isOpenHead = isWhole || isHalf;   // open (hollow) note head
 
-  if (sym === 'r') {
-    // Rest symbol
-    text(svg, cx, cy + 3, '𝄽', '#555', '9px');
-    return;
-  }
+  // Stem direction: top half of staff → up, bottom half → down
+  const stemUp  = cy < (STAFF_PAD_TOP + 4 * ROW_H + ROW_H / 2);
+  const stemLen = ROW_H * 2.8;
+  const stemX   = cx + (stemUp ? 4 : -4);
+  const stemY   = stemUp ? cy - stemLen : cy + stemLen;
 
-  const isX = sym === 'x' || sym === 'X';
+  const isX    = sym === 'x' || sym === 'X';
+  const isXO   = sym === 'xo';
+  const isXC   = sym === 'xc';
+  const isCS   = sym === 'cs';
+  const isRS   = sym === 'rs';
   const isGhost = sym === 'g';
-  const isFlam = sym === 'f';
-  const accent = sym === 'X' || sym === 'O';
+  const isFlam  = sym === 'f';
+  const isDrag  = sym === 'drag';
+  const isRoll  = sym === 'r';
+  const isO    = sym === 'o' || sym === 'O';
+  const accent  = sym === 'X' || sym === 'O';
 
-  if (isX) {
-    // X note head
-    const s = 3.5;
-    line(svg, cx-s, cy-s, cx+s, cy+s, '#1a1a18', accent ? 2.2 : 1.5);
-    line(svg, cx+s, cy-s, cx-s, cy+s, '#1a1a18', accent ? 2.2 : 1.5);
+  // ── Draw note head ──────────────────────────────────────
+  if (isX || isXO || isXC) {
+    // X head — same shape for all durations (standard drum notation)
+    const s = isWhole ? 4.5 : 3.5;
+    const w = accent ? 2.2 : (isWhole ? 1.8 : 1.5);
+    line(svg, cx-s, cy-s, cx+s, cy+s, '#1a1a18', w);
+    line(svg, cx+s, cy-s, cx-s, cy+s, '#1a1a18', w);
+    // open/closed marker to the right
+    if (isXO) text(svg, cx + s + 3, cy + 3, 'o', '#1a1a18', '7px');
+    if (isXC) text(svg, cx + s + 3, cy + 3, '+', '#1a1a18', '7px', 'bold');
+
+  } else if (isCS) {
+    // Cross stick: square head
+    const sq = document.createElementNS(SVG_NS, 'rect');
+    sq.setAttribute('x', cx - 4); sq.setAttribute('y', cy - 3.5);
+    sq.setAttribute('width', '8'); sq.setAttribute('height', '7');
+    sq.setAttribute('fill', 'none');
+    sq.setAttribute('stroke', '#1a1a18');
+    sq.setAttribute('stroke-width', '1.5');
+    svg.appendChild(sq);
+
+  } else if (isRS) {
+    // Rimshot: filled oval with white X
+    ellipse(svg, cx, cy, 4.5, 3.5, '#1a1a18', '#1a1a18', 1);
+    const s = 2.2;
+    line(svg, cx-s, cy-s, cx+s, cy+s, '#fff', 1.3);
+    line(svg, cx+s, cy-s, cx-s, cy+s, '#fff', 1.3);
+
   } else if (isGhost) {
-    // Ghost: open circle with parens
-    ellipse(svg, cx, cy, 3, 2.5, 'none', '#555', 1);
-    text(svg, cx - 8, cy + 3.5, '(', '#555', '8px');
-    text(svg, cx + 4, cy + 3.5, ')', '#555', '8px');
+    // Ghost: thin hollow oval with parens
+    ellipse(svg, cx, cy, 3.5, 2.5, 'none', '#777', 0.9);
+    text(svg, cx - 9, cy + 3.5, '(', '#777', '9px');
+    text(svg, cx + 5, cy + 3.5, ')', '#777', '9px');
+
   } else if (isFlam) {
-    // Flam: small grace note + main note
-    ellipse(svg, cx - 6, cy - 2, 2, 1.5, '#888', 'none', 1);
-    line(svg, cx - 6, cy - 2, cx - 6, cy - 2 - ROW_H * 1.5, '#888', 0.8);
-    if (dur === 4 || dur === 2 || dur === 1) ellipse(svg, cx, cy, 4, 3, 'none', '#1a1a18', 1.5);
-    else ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+    // Flam: small grace note head + stem, then main note
+    const graceX = cx - 7;
+    const graceY = stemUp ? cy - 2 : cy + 2;
+    ellipse(svg, graceX, graceY, 1.8, 1.4, '#777', '#777', 0);
+    line(svg, graceX + (stemUp?1.5:-1.5), graceY, graceX + (stemUp?1.5:-1.5), graceY + (stemUp?-ROW_H*1.6:ROW_H*1.6), '#777', 0.9);
+    // main head: open if whole/half, filled otherwise
+    if (isOpenHead) ellipse(svg, cx, cy, 4.5, 3, 'none', '#1a1a18', 1.5);
+    else            ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+
+  } else if (isDrag) {
+    // Drag: two grace notes then main note
+    const g1x = cx - 10, g2x = cx - 5;
+    const gy  = stemUp ? cy - 2 : cy + 2;
+    ellipse(svg, g1x, gy, 1.6, 1.2, '#777', '#777', 0);
+    line(svg, g1x + (stemUp?1.4:-1.4), gy, g1x + (stemUp?1.4:-1.4), gy + (stemUp?-ROW_H*1.4:ROW_H*1.4), '#777', 0.8);
+    ellipse(svg, g2x, gy, 1.6, 1.2, '#777', '#777', 0);
+    line(svg, g2x + (stemUp?1.4:-1.4), gy, g2x + (stemUp?1.4:-1.4), gy + (stemUp?-ROW_H*1.4:ROW_H*1.4), '#777', 0.8);
+    // main head
+    if (isOpenHead) ellipse(svg, cx, cy, 4.5, 3, 'none', '#1a1a18', 1.5);
+    else            ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+
+  } else if (isRoll) {
+    // Roll: filled head + tremolo lines on stem
+    if (isOpenHead) ellipse(svg, cx, cy, 4.5, 3, 'none', '#1a1a18', 1.5);
+    else            ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+
   } else {
-    // O note head
-    if (dur === 1) {
-      // Whole note: open oval
-      ellipse(svg, cx, cy, 5, 3.5, 'none', '#1a1a18', 1.5);
-    } else if (dur === 2) {
-      ellipse(svg, cx, cy, 4.5, 3, 'none', '#1a1a18', 1.5);
+    // Normal o/O note head
+    if (isWhole) {
+      // Whole: large hollow oval, no stem
+      ellipse(svg, cx, cy, 5.5, 3.8, 'none', '#1a1a18', 1.8);
+    } else if (isHalf) {
+      // Half: medium hollow oval + stem
+      ellipse(svg, cx, cy, 5, 3.2, 'none', '#1a1a18', 1.5);
     } else {
-      ellipse(svg, cx, cy, 4, 3, accent ? '#1a1a18' : '#1a1a18', 'none', 0);
-      if (!accent) ellipse(svg, cx, cy, 4, 3, 'none', '#1a1a18', 1.2);
-      if (accent) ellipse(svg, cx, cy, 4, 3, '#1a1a18', '#1a1a18', 1);
+      // Quarter/8th/16th: filled oval
+      if (accent) ellipse(svg, cx, cy, 4.2, 3, '#1a1a18', '#1a1a18', 1);
+      else        ellipse(svg, cx, cy, 4, 2.8, '#1a1a18', '#1a1a18', 1);
     }
   }
 
-  // Stem
-  if (dur !== 1) {
-    const stemFrom = stemUp ? cy - 3 : cy + 3;
-    line(svg, cx + (stemUp ? 4 : -4), stemFrom, cx + (stemUp ? 4 : -4), stemY, '#1a1a18', 1.2);
+  // ── Stem ────────────────────────────────────────────────
+  // Whole note: no stem. CS/RS/Ghost: stem still drawn (standard)
+  if (!isWhole) {
+    const headEdge = stemUp ? cy - 3 : cy + 3;
+    line(svg, stemX, headEdge, stemX, stemY, '#1a1a18', 1.2);
   }
 
-  // Flags / beams (simplified)
-  if (dur === 8) {
-    const sx = cx + (stemUp ? 4 : -4);
-    drawFlag(svg, sx, stemY, stemUp, 1);
-  } else if (dur === 16) {
-    const sx = cx + (stemUp ? 4 : -4);
-    drawFlag(svg, sx, stemY, stemUp, 2);
+  // ── Flags (8th/16th) ────────────────────────────────────
+  if (!isWhole) {
+    if (baseDur === '8' || baseDur === '8t') {
+      drawFlag(svg, stemX, stemY, stemUp, 1);
+    } else if (baseDur === '16' || baseDur === '16t') {
+      drawFlag(svg, stemX, stemY, stemUp, 2);
+    }
   }
 
-  // Accent mark
+  // ── Roll tremolo marks (3 slashes on stem) ──────────────
+  if (isRoll && !isWhole) {
+    for (let i = 0; i < 3; i++) {
+      const slashY = stemUp
+        ? stemY + stemLen * 0.25 + i * 5
+        : stemY - stemLen * 0.25 - i * 5;
+      const sx = stemX - 4;
+      line(svg, sx, slashY - 3, sx + 8, slashY + 3, '#1a1a18', 1.2);
+    }
+  }
+
+  // ── Dotted augmentation dot ─────────────────────────────
+  if (isDotted) {
+    const dotEl = document.createElementNS(SVG_NS, 'circle');
+    dotEl.setAttribute('cx', cx + 8);
+    dotEl.setAttribute('cy', cy - 1);
+    dotEl.setAttribute('r', '1.5');
+    dotEl.setAttribute('fill', '#1a1a18');
+    svg.appendChild(dotEl);
+  }
+
+  // ── Triplet number ──────────────────────────────────────
+  if (isTriplet) {
+    const num = baseDur === '8t' ? '3' : '6';
+    const ty = stemUp ? stemY - 4 : stemY + 9;
+    text(svg, cx, ty, num, '#888', '6px');
+  }
+
+  // ── Accent mark (>) ─────────────────────────────────────
   if (accent) {
-    text(svg, cx - 5, stemUp ? cy + ROW_H * 0.9 : cy - ROW_H * 0.4, '>', '#333', '7px', 'bold');
+    const ay = stemUp ? cy + ROW_H * 0.85 : cy - ROW_H * 0.35;
+    text(svg, cx - 5, ay, '>', '#333', '8px', 'bold');
   }
 }
 
@@ -891,7 +1144,7 @@ function text(svg, x, y, str, fill, size, weight) {
 // UNDO / REDO
 // ═══════════════════════════════════
 function snapshotForUndo() {
-  undoStack.push(JSON.stringify({ measures, lyrics }));
+  undoStack.push(JSON.stringify({ measures: measures.map(m=>({rows:(m.rows||m).map(r=>[...r]),durUnit:String(m.durUnit||'4'),sig:m.sig||timeSig,sigOverride:m.sigOverride||false})), lyrics: [...lyrics] }));
   if (undoStack.length > MAX_HISTORY) undoStack.shift();
   redoStack = [];
   updateUndoButtons();
@@ -899,8 +1152,8 @@ function snapshotForUndo() {
 
 function doUndo() {
   if (!undoStack.length) { toast('沒有可以回復的步驟'); return; }
-  redoStack.push(JSON.stringify({ measures, lyrics }));
-  const us = JSON.parse(undoStack.pop()); measures = us.measures; lyrics = us.lyrics || [];
+  redoStack.push(JSON.stringify({ measures: measures.map(m=>({rows:(m.rows||m).map(r=>[...r]),durUnit:String(m.durUnit||'4'),sig:m.sig||timeSig,sigOverride:m.sigOverride||false})), lyrics: [...lyrics] }));
+  const us = JSON.parse(undoStack.pop()); measures = us.measures.map(m=>({...m,durUnit:String(m.durUnit||'4')})); lyrics = us.lyrics || new Array(measures.length).fill('');
   updateUndoButtons();
   renderStaff();
   updateMeasureInfo();
@@ -909,8 +1162,8 @@ function doUndo() {
 
 function doRedo() {
   if (!redoStack.length) { toast('沒有可以重做的步驟'); return; }
-  undoStack.push(JSON.stringify({ measures, lyrics }));
-  const rs = JSON.parse(redoStack.pop()); measures = rs.measures; lyrics = rs.lyrics || [];
+  undoStack.push(JSON.stringify({ measures: measures.map(m=>({rows:(m.rows||m).map(r=>[...r]),durUnit:String(m.durUnit||'4'),sig:m.sig||timeSig,sigOverride:m.sigOverride||false})), lyrics: [...lyrics] }));
+  const rs = JSON.parse(redoStack.pop()); measures = rs.measures.map(m=>({...m,durUnit:String(m.durUnit||'4')})); lyrics = rs.lyrics || new Array(measures.length).fill('');
   updateUndoButtons();
   renderStaff();
   updateMeasureInfo();
@@ -930,46 +1183,219 @@ function updateUndoButtons() {
 function handleCellClick(measIdx, instIdx, cellIdx) {
   snapshotForUndo();
   const meas = measures[measIdx];
+  const rows = meas.rows || meas;
 
   if (currentSym === 'erase') {
-    meas[instIdx][cellIdx] = null;
-  } else {
-    // Toggle: if same sym already there, remove
-    const existing = meas[instIdx][cellIdx];
-    if (existing && existing.sym === currentSym && existing.dur === currentDur) {
-      meas[instIdx][cellIdx] = null;
+    rows[instIdx][cellIdx] = null;
+  } else if (currentSym === 'rest') {
+    const existing = rows[instIdx][cellIdx];
+    if (existing && existing.sym === 'rest') {
+      rows[instIdx][cellIdx] = null;
     } else {
-      meas[instIdx][cellIdx] = { sym: currentSym, dur: currentDur };
+      // rest dur = current selected dur or measure's base dur
+      rows[instIdx][cellIdx] = { sym: 'rest', dur: currentDur };
+    }
+  } else {
+    const existing = rows[instIdx][cellIdx];
+    if (existing && existing.sym === currentSym && existing.dur === currentDur) {
+      rows[instIdx][cellIdx] = null;
+    } else {
+      rows[instIdx][cellIdx] = { sym: currentSym, dur: currentDur };
     }
   }
 
+  // Auto-resize the measure grid to fit the finest note
+  rebuildMeasureAutoGrid(measures[measIdx]);
   renderStaff();
   autoSave();
+}
+
+function applyMeasureSigInput() {
+  const idxInput = document.getElementById('measSigIdx');
+  const sigInput = document.getElementById('measSigVal');
+  const idx = parseInt(idxInput.value) - 1;
+  const sig = sigInput.value.trim();
+  if (isNaN(idx) || idx < 0 || idx >= measures.length) {
+    toast(`小節編號無效（共 ${measures.length} 小節）`); return;
+  }
+  if (!sig.match(/^[0-9]+\/[0-9]+$/)) {
+    toast('拍號格式錯誤，請輸入如 3/4'); return;
+  }
+  changeMeasureSig(idx, sig);
+  sigInput.value = '';
+}
+
+// Prompt user for per-measure sig change
+function promptMeasureSig(measIdx) {
+  const meas = measures[measIdx];
+  const cur = meas.sig || timeSig;
+  const SIGS = ['4/4','3/4','2/4','6/8','7/8','5/4','7/4','9/8','12/8','3/8','5/8','2/2'];
+  const curIdx = SIGS.indexOf(cur);
+  // Cycle through common sigs, or show prompt for custom
+  const next = SIGS[(curIdx + 1) % SIGS.length];
+  changeMeasureSig(measIdx, next);
+}
+
+// Draw rest symbol in a cell
+function drawRestSymbol(svg, cx, cy, cellDur) {
+  // cellDur from the cell's own dur field
+  const dur  = String(cellDur || '4');
+  const base = dur.replace('d','').replace('t','');
+  const dot  = dur.includes('d') ? '.' : '';
+  // Unicode rest glyphs
+  const GLYPHS = {'1':'𝄻','2':'𝄼','4':'𝄽','8':'𝄾','16':'𝄿'};
+  const SIZES  = {'1':'11px','2':'9px','4':'9px','8':'8px','16':'7px'};
+  const glyph  = (GLYPHS[base] || '𝄽') + dot;
+  // Whole rest: drawn as filled rectangle hanging from a line (more readable than glyph)
+  if (base === '1') {
+    // Whole rest: solid block hanging below a line
+    const r = document.createElementNS(SVG_NS, 'rect');
+    r.setAttribute('x', cx - 5); r.setAttribute('y', cy - 2);
+    r.setAttribute('width', '10'); r.setAttribute('height', '4');
+    r.setAttribute('fill', '#aaa');
+    svg.appendChild(r);
+    line(svg, cx - 6, cy - 2, cx + 6, cy - 2, '#aaa', 0.8);
+  } else if (base === '2') {
+    // Half rest: solid block sitting on a line
+    const r = document.createElementNS(SVG_NS, 'rect');
+    r.setAttribute('x', cx - 5); r.setAttribute('y', cy - 2);
+    r.setAttribute('width', '10'); r.setAttribute('height', '4');
+    r.setAttribute('fill', '#aaa');
+    svg.appendChild(r);
+    line(svg, cx - 6, cy + 2, cx + 6, cy + 2, '#aaa', 0.8);
+  } else {
+    // Quarter/8th/16th: use unicode glyphs
+    const el = document.createElementNS(SVG_NS, 'text');
+    el.setAttribute('x', cx);
+    el.setAttribute('y', cy + 4);
+    el.setAttribute('text-anchor', 'middle');
+    el.setAttribute('font-size', SIZES[base] || '9px');
+    el.setAttribute('fill', '#aaa');
+    el.setAttribute('font-family', 'Georgia, serif');
+    el.textContent = glyph;
+    svg.appendChild(el);
+  }
+}
+
+// Cycle a measure's durUnit through common grids
+const DUR_CYCLE = ['4','8','16','8t','16t'];
+const DUR_LABELS = {'1':'全音符','2':'二分','4':'四分','8':'八分','16':'十六分',
+  '4d':'附點四分','8d':'附點八分','16d':'附點十六分','2d':'附點二分',
+  '8t':'八分三連','16t':'十六分六連'};
+
+function cycleMeasureDur(measIdx) {
+  snapshotForUndo();
+  const meas = measures[measIdx];
+  const cur = meas.durUnit || '4';
+  const idx = DUR_CYCLE.indexOf(cur);
+  const next = DUR_CYCLE[(idx + 1) % DUR_CYCLE.length];
+  rebuildMeasureGrid(meas, next);
+  renderStaff();
+  autoSave();
+  toast(`小節 ${measIdx+1} → ${DUR_LABELS[next] || next}`);
+}
+
+// Rebuild measure rows to match the auto-detected finest grid
+function rebuildMeasureAutoGrid(meas) {
+  const newDur = autoGridDur(meas);
+  const sig = meas.sig || timeSig;
+  const newCpm = cellsForMeasure(sig, newDur);
+  const oldRows = meas.rows || meas;
+  const oldCpm = oldRows[0].length;
+  if (oldCpm === newCpm) return; // already correct size
+  const newRows = [];
+  for (let i = 0; i < N_INST; i++) {
+    const newRow = new Array(newCpm).fill(null);
+    oldRows[i].forEach((cell, ci) => {
+      if (!cell) return;
+      const newCi = Math.round(ci * newCpm / oldCpm);
+      if (newCi < newCpm) newRow[newCi] = { ...cell };
+    });
+    newRows.push(newRow);
+  }
+  meas.rows = newRows;
+  meas.durUnit = newDur; // keep in sync for serialization
+}
+
+function rebuildMeasureGrid(meas, newDur) {
+  const sig = meas.sig || timeSig;
+  const newCpm = cellsForMeasure(sig, newDur);
+  const oldRows = meas.rows || meas;
+  const newRows = [];
+  for (let i = 0; i < N_INST; i++) {
+    const newRow = new Array(newCpm).fill(null);
+    const oldCpm = oldRows[i].length;
+    oldRows[i].forEach((cell, ci) => {
+      if (!cell) return;
+      const newCi = Math.round(ci * newCpm / oldCpm);
+      if (newCi < newCpm) newRow[newCi] = { ...cell };
+    });
+    newRows.push(newRow);
+  }
+  meas.rows = newRows;
+  meas.durUnit = newDur;
+}
+
+// Change a single measure's time sig
+function changeMeasureSig(measIdx, newSig) {
+  snapshotForUndo();
+  const meas = measures[measIdx];
+  const dur = meas.durUnit || currentDur;
+  const newCpm = cellsForMeasure(newSig, dur);
+  const oldRows = meas.rows || meas;
+  const newRows = [];
+  for (let i = 0; i < N_INST; i++) {
+    const newRow = new Array(newCpm).fill(null);
+    const oldCpm = oldRows[i].length;
+    oldRows[i].forEach((cell, ci) => {
+      if (!cell) return;
+      const newCi = Math.round(ci * newCpm / oldCpm);
+      if (newCi < newCpm) newRow[newCi] = { ...cell };
+    });
+    newRows.push(newRow);
+  }
+  meas.rows = newRows;
+  meas.sig = newSig;
+  meas.sigOverride = true;
+  renderStaff();
+  autoSave();
+  toast(`小節 ${measIdx+1} 拍號 → ${newSig}`);
 }
 
 // ═══════════════════════════════════
 // TOOL SELECTION
 // ═══════════════════════════════════
 function setDur(d, el) {
-  currentDur = d;
+  currentDur = String(d);
   document.querySelectorAll('[id^="dur-"]').forEach(e => e.classList.remove('active'));
   el.classList.add('active');
 }
 
+let prevSym = 'x';
 function setSym(s, el) {
+  if (s !== 'erase') prevSym = s;
   currentSym = s;
   document.querySelectorAll('[id^="sym-"]').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
+  // Show erase mode on toolbar background
+  document.querySelector('.toolbar').style.background = s === 'erase' ? '#fff5f5' : '';
+}
+
+function toggleErase() {
+  if (currentSym === 'erase') {
+    // go back to previous sym
+    const el = document.getElementById('sym-' + prevSym) || document.getElementById('sym-x');
+    setSym(prevSym, el);
+  } else {
+    setSym('erase', document.getElementById('sym-erase'));
+  }
 }
 
 // ═══════════════════════════════════
 // MEASURE MANAGEMENT
 // ═══════════════════════════════════
 function addMeasure() {
-  const cpm = cellsPerMeasure();
-  const rows = [];
-  for (let i = 0; i < N_INST; i++) rows.push(new Array(cpm).fill(null));
-  measures.push(rows);
+  measures.push(makeMeasure());
   lyrics.push('');
   renderStaff();
   updateMeasureInfo();
@@ -1062,25 +1488,40 @@ function toggleLoop() {
 
 function tick() {
   if (!isPlaying) return;
-  const allCells = measures.flatMap(m =>
-    Array.from({ length: m[0].length }, (_, ci) =>
-      INSTRUMENTS.map((inst, ii) => ({ inst: ii, cell: m[ii][ci] }))
-    )
-  );
+  // Build step list with timing
+  const allCells = measures.flatMap(m => {
+    const rows = m.rows || m;
+    const dur = m.durUnit || '4';
+    const sig = m.sig || timeSig;
+    const baseDur = String(dur).replace('d','').replace('t','');
+    // beats per cell
+    const isTriplet = String(dur).includes('t');
+    const cpb = isTriplet ? 12 : 16;
+    const [sigN, sigD] = (sig||'4/4').split('/').map(Number);
+    const denom = sigD || 4;
+    // one beat = (denom/4) quarter notes; one cell = (1 beat / cpb)
+    const cellBeats = (denom / 4) / cpb;
+    return Array.from({ length: rows[0].length }, (_, ci) => ({
+      notes: INSTRUMENTS.map((inst, ii) => ({ inst: ii, cell: rows[ii][ci] })),
+      cellBeats
+    }));
+  });
   const totalSteps = allCells.length;
   if (playStep >= totalSteps) {
     if (loopEnabled) playStep = 0;
     else { stopPlay(); return; }
   }
   const step = allCells[playStep];
-  step.forEach(({ inst, cell }) => {
-    if (cell && !mutedInst.has(inst)) {
+  const cellBeats = step.cellBeats || (1/4);
+  const msPerBeat = 60000 / bpm;
+  const stepMs = cellBeats * msPerBeat;
+  step.notes.forEach(({ inst, cell }) => {
+    if (cell && cell.sym !== 'rest' && !mutedInst.has(inst)) {
       playDrum(INSTRUMENTS[inst].abbr, cell.sym === 'X' || cell.sym === 'O');
     }
   });
   playStep++;
-  const msPerCell = (60 / bpm / 4) * 1000;
-  playTimer = setTimeout(tick, msPerCell);
+  playTimer = setTimeout(tick, stepMs);
 }
 
 function updateTimer() {
@@ -1095,26 +1536,6 @@ function updateTimer() {
     `Bar ${bar} · Beat ${beat} · ${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 }
 
-function applyCustomSig() {
-  const val = document.getElementById('sigCustom').value.trim();
-  if (!val.match(/^\d+\/\d+$/)) { toast('格式錯誤，請輸入如 11/8'); return; }
-  timeSig = val;
-  // Add as option if not exists
-  const sel = document.getElementById('sigSelect');
-  let found = false;
-  for (let o of sel.options) { if (o.value === val) { found = true; sel.value = val; break; } }
-  if (!found) {
-    const opt = document.createElement('option');
-    opt.value = val; opt.textContent = val;
-    sel.insertBefore(opt, sel.querySelector('[value="custom"]'));
-    sel.value = val;
-  }
-  document.getElementById('sigCustom').style.display = 'none';
-  initDefault();
-  renderAll();
-  toast(`拍號已設為 ${timeSig}`);
-}
-
 function updateBpm(v) {
   bpm = parseInt(v);
   document.getElementById('bpmNum').textContent = v;
@@ -1126,11 +1547,60 @@ function updateSig() {
   if (val === 'custom') {
     customInput.style.display = 'inline-block';
     customInput.focus();
-    return;
+  } else {
+    customInput.style.display = 'none';
   }
-  customInput.style.display = 'none';
-  timeSig = val;
+  // Don't apply yet — wait for confirmGlobalSig()
 }
+
+function confirmGlobalSig() {
+  const sel = document.getElementById('sigSelect');
+  const customInput = document.getElementById('sigCustom');
+  let newSig;
+  if (sel.value === 'custom') {
+    const v = customInput.value.trim();
+    if (!v.match(/^\d+\/\d+$/)) { toast('格式錯誤，如 11/8'); return; }
+    newSig = v;
+    // add to select if not there
+    let found = false;
+    for (let o of sel.options) { if (o.value === newSig) { found=true; sel.value=newSig; break; } }
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = newSig; opt.textContent = newSig;
+      sel.insertBefore(opt, sel.querySelector('[value="custom"]'));
+      sel.value = newSig;
+    }
+    customInput.style.display = 'none';
+  } else {
+    newSig = sel.value;
+  }
+  snapshotForUndo();
+  timeSig = newSig;
+  // Apply to all measures that have no independent sig override,
+  // or ask user if they want to apply to all
+  measures.forEach(m => {
+    if (!m.sigOverride) {
+      const newCpm = cellsForMeasure(newSig, m.durUnit || currentDur);
+      const oldRows = m.rows || m;
+      const newRows = [];
+      for (let i = 0; i < N_INST; i++) {
+        const newRow = new Array(newCpm).fill(null);
+        const oldCpm = oldRows[i].length;
+        oldRows[i].forEach((cell, ci) => {
+          if (!cell) return;
+          const newCi = Math.round(ci * newCpm / oldCpm);
+          if (newCi < newCpm) newRow[newCi] = { ...cell };
+        });
+        newRows.push(newRow);
+      }
+      m.rows = newRows;
+      m.sig = newSig;
+    }
+  });
+  renderAll();
+  toast(`全局拍號→ ${newSig}`);
+}
+
 
 // ═══════════════════════════════════
 // AUDIO
@@ -1248,7 +1718,7 @@ async function saveToDrive() {
   const data = getData();
   const title = data.title || '無標題鼓譜';
   const filename = title + '.drum.json';
-  const totalBars = measures.length;
+  const totalBars = measures.length;  // each measure is one bar
   const appProps = {
     bpm: String(bpm),
     timeSig,
@@ -1361,12 +1831,19 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'z') { e.preventDefault(); doUndo(); return; }
   if (e.key === ' ') { e.preventDefault(); togglePlay(); }
   if (e.key === 'Escape') stopPlay();
-  if (e.key === 'e' || e.key === 'E') setSym('erase', document.getElementById('sym-erase'));
-  if (e.key === '4') setDur(4, document.getElementById('dur-4'));
-  if (e.key === '8') setDur(8, document.getElementById('dur-8'));
-  if (e.key === '6') setDur(16, document.getElementById('dur-16'));
-  if (e.key === '2') setDur(2, document.getElementById('dur-2'));
-  if (e.key === '1') setDur(1, document.getElementById('dur-1'));
+  if (e.key === 'e' || e.key === 'E') {
+    // toggle erase: press E again to go back to previous sym
+    if (currentSym === 'erase') {
+      setSym(prevSym, document.getElementById('sym-' + prevSym) || document.getElementById('sym-x'));
+    } else {
+      setSym('erase', document.getElementById('sym-erase'));
+    }
+  }
+  if (e.key === '4') setDur('4', document.getElementById('dur-4'));
+  if (e.key === '8') setDur('8', document.getElementById('dur-8'));
+  if (e.key === '6') setDur('16', document.getElementById('dur-16'));
+  if (e.key === '2') setDur('2', document.getElementById('dur-2'));
+  if (e.key === '1') setDur('1', document.getElementById('dur-1'));
   if (e.key === 'x') setSym('x', document.getElementById('sym-x'));
   if (e.key === 'o') setSym('o', document.getElementById('sym-o'));
   if (e.key === 'r') setSym('r', document.getElementById('sym-r'));
